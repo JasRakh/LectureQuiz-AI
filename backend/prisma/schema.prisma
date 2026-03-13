@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+
+  lectures     Lecture[]    @relation("ProfessorLectures")
+  quizResults  QuizResult[]
+}
+
+model Lecture {
+  id          String   @id @default(cuid())
+  title       String
+  videoUrl    String
+  createdAt   DateTime @default(now())
+
+  professor   User     @relation("ProfessorLectures", fields: [professorId], references: [id])
+  professorId String
+
+  quizzes     Quiz[]
+}
+
+model Quiz {
+  id             String    @id @default(cuid())
+  lecture        Lecture   @relation(fields: [lectureId], references: [id])
+  lectureId      String
+  generatedFromAI Boolean  @default(true)
+  createdAt      DateTime  @default(now())
+
+  questions   Question[]
+  results     QuizResult[]
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  quiz          Quiz     @relation(fields: [quizId], references: [id])
+  quizId        String
+  question      String
+  options       String   // JSON stringified array of options
+  correctAnswer String
+}
+
+model QuizResult {
+  id        String   @id @default(cuid())
+  student   User     @relation(fields: [studentId], references: [id])
+  studentId String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quizId    String
+  score     Int
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  student
+  professor
+}
+
