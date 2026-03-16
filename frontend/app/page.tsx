@@ -1,12 +1,6 @@
 import { MainNav } from '../components/layout/main-nav';
 import { Button } from '../components/ui/button';
-import {
-  ArrowRight,
-  PlayCircle,
-  Sparkles,
-  Video,
-  Workflow,
-} from 'lucide-react';
+import { ArrowRight, PlayCircle, Sparkles, Video, Workflow } from 'lucide-react';
 import { MotionHero } from '../components/landing/motion-hero';
 import Link from 'next/link';
 import Box from '@mui/material/Box';
@@ -20,8 +14,7 @@ export default function LandingPage() {
     <Box
       sx={{
         minHeight: '100vh',
-        background:
-          'radial-gradient(circle at top,rgba(37,99,235,0.4),#020617 55%)',
+        background: 'radial-gradient(circle at top,rgba(37,99,235,0.4),#020617 55%)',
       }}
     >
       <MainNav />
@@ -55,12 +48,8 @@ export default function LandingPage() {
               >
                 LIVE PREVIEW
               </Typography>
-              <Typography
-                variant='body2'
-                sx={{ mt: 1, fontSize: 12, color: '#9ca3af' }}
-              >
-                Watch LectureQuiz AI turn a 60-minute lecture into an adaptive
-                quiz in seconds.
+              <Typography variant='body2' sx={{ mt: 1, fontSize: 12, color: '#9ca3af' }}>
+                Watch LectureQuiz AI turn a 60-minute lecture into an adaptive quiz in seconds.
               </Typography>
 
               <Box
@@ -163,22 +152,11 @@ export default function LandingPage() {
                   gap: 1.5,
                 }}
               >
-                <Button
-                  component={Link}
-                  href='/register'
-                  size='large'
-                  sx={{ flex: 1 }}
-                >
+                <Button component='a' href='/register' size='large' sx={{ flex: 1 }}>
                   Get started free
                   <ArrowRight className='ml-2 h-4 w-4' />
                 </Button>
-                <Button
-                  component='a'
-                  href='#demo'
-                  variant='outlined'
-                  size='large'
-                  sx={{ flex: 1 }}
-                >
+                <Button component='a' href='#demo' variant='outlined' size='large' sx={{ flex: 1 }}>
                   <PlayCircle className='mr-2 h-5 w-5' color='#38bdf8' />
                   Watch interactive demo
                 </Button>
@@ -217,18 +195,13 @@ export default function LandingPage() {
                 body: 'GPT / T5 generate concept-anchored questions tuned to student proficiency and learning goals.',
               },
             ].map((item) => (
-              <div
-                key={item.step}
-                className='glass-panel relative overflow-hidden p-5'
-              >
+              <div key={item.step} className='glass-panel relative overflow-hidden p-5'>
                 <div className='pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/15 via-transparent to-emerald-500/10' />
                 <div className='relative'>
                   <p className='text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400'>
                     STEP {item.step}
                   </p>
-                  <h3 className='mt-2 text-sm font-semibold text-slate-50'>
-                    {item.title}
-                  </h3>
+                  <h3 className='mt-2 text-sm font-semibold text-slate-50'>{item.title}</h3>
                   <p className='mt-2 text-xs text-slate-400'>{item.body}</p>
                 </div>
               </div>
@@ -254,26 +227,22 @@ export default function LandingPage() {
                 Concept-aware question generation
               </h3>
               <p className='mt-2 text-xs text-slate-400'>
-                Questions are anchored to core concepts, not random sentences.
-                Every item knows exactly which learning outcome it targets.
+                Questions are anchored to core concepts, not random sentences. Every item knows
+                exactly which learning outcome it targets.
               </p>
             </div>
             <div className='glass-panel p-5'>
-              <h3 className='text-sm font-semibold text-slate-50'>
-                Difficulty-curved quizzes
-              </h3>
+              <h3 className='text-sm font-semibold text-slate-50'>Difficulty-curved quizzes</h3>
               <p className='mt-2 text-xs text-slate-400'>
-                Start with warm-up questions, then ramp up to deeper application
-                and synthesis using prior performance data.
+                Start with warm-up questions, then ramp up to deeper application and synthesis using
+                prior performance data.
               </p>
             </div>
             <div className='glass-panel p-5'>
-              <h3 className='text-sm font-semibold text-slate-50'>
-                LMS-friendly & privacy-first
-              </h3>
+              <h3 className='text-sm font-semibold text-slate-50'>LMS-friendly & privacy-first</h3>
               <p className='mt-2 text-xs text-slate-400'>
-                Designed to plug into existing LMS workflows and keep student
-                data encrypted and under institutional control.
+                Designed to plug into existing LMS workflows and keep student data encrypted and
+                under institutional control.
               </p>
             </div>
           </div>
@@ -323,8 +292,8 @@ export default function LandingPage() {
               Experience the professor and student dashboards.
             </h3>
             <p className='text-xs text-slate-300'>
-              Explore how LectureQuiz AI visualises lecture coverage, question
-              quality, and student performance with live dashboards.
+              Explore how LectureQuiz AI visualises lecture coverage, question quality, and student
+              performance with live dashboards.
             </p>
             <div className='flex flex-wrap gap-3 text-xs'>
               <Button>
@@ -340,9 +309,8 @@ export default function LandingPage() {
               This is where a real product demo or embedded video would live.
             </p>
             <p className='mt-2'>
-              In production, this surface can showcase AI-generated quiz flows:
-              upload a short lecture sample, watch Whisper transcribe it, then
-              preview generated questions live.
+              In production, this surface can showcase AI-generated quiz flows: upload a short
+              lecture sample, watch Whisper transcribe it, then preview generated questions live.
             </p>
           </div>
         </section>
@@ -356,8 +324,8 @@ export default function LandingPage() {
               Pilot LectureQuiz AI with your next course.
             </h3>
             <p className='mt-2 text-xs text-slate-300'>
-              Start with a single module, measure concept mastery, and scale to
-              your entire program with confidence.
+              Start with a single module, measure concept mastery, and scale to your entire program
+              with confidence.
             </p>
           </div>
           <div className='flex flex-col gap-2 text-xs md:flex-row'>
@@ -371,9 +339,7 @@ export default function LandingPage() {
         </section>
 
         <footer className='flex flex-col items-center justify-between gap-3 text-[11px] text-slate-500 md:flex-row'>
-          <p>
-            © {new Date().getFullYear()} LectureQuiz AI. All rights reserved.
-          </p>
+          <p>© {new Date().getFullYear()} LectureQuiz AI. All rights reserved.</p>
           <div className='flex gap-4'>
             <a href='#' className='hover:text-slate-300'>
               Privacy

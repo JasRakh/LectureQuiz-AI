@@ -9,14 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
     "@hookform/resolvers": "^3.9.0",
     "@mui/icons-material": "^6.3.1",
     "@mui/material": "^6.3.1",
-    "@emotion/react": "^11.13.5",
-    "@emotion/styled": "^11.13.5",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.474.0",
-    "next": "14.1.0",
+    "next": "^16.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.52.0",
@@ -28,7 +28,7 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "eslint": "^8.56.0",
-    "eslint-config-next": "14.1.0",
+    "eslint-config-next": "^16.1.6",
     "typescript": "^5.4.0"
   }
 }
