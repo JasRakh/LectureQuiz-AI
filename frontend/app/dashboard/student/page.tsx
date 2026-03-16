@@ -42,16 +42,10 @@ export default function StudentDashboardPage() {
           >
             STUDENT DASHBOARD
           </Typography>
-          <Typography
-            variant='h5'
-            sx={{ mt: 1, color: '#e5e7eb', fontWeight: 600 }}
-          >
+          <Typography variant='h5' sx={{ mt: 1, color: '#e5e7eb', fontWeight: 600 }}>
             {name ? `Welcome back, ${name}.` : 'Welcome back.'}
           </Typography>
-          <Typography
-            variant='body2'
-            sx={{ mt: 0.5, fontSize: 12, color: '#9ca3af' }}
-          >
+          <Typography variant='body2' sx={{ mt: 0.5, fontSize: 12, color: '#9ca3af' }}>
             Continue where you left off or review your recent quiz results.
           </Typography>
         </Box>
@@ -60,16 +54,11 @@ export default function StudentDashboardPage() {
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Paper
-            sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}
-          >
+          <Paper sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}>
             <Typography variant='caption' sx={{ color: '#9ca3af' }}>
               Average score last 7 days
             </Typography>
-            <Typography
-              variant='h4'
-              sx={{ mt: 1, color: '#6ee7b7', fontWeight: 600 }}
-            >
+            <Typography variant='h4' sx={{ mt: 1, color: '#6ee7b7', fontWeight: 600 }}>
               86%
             </Typography>
             <Typography
@@ -87,16 +76,11 @@ export default function StudentDashboardPage() {
           </Paper>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Paper
-            sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}
-          >
+          <Paper sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}>
             <Typography variant='caption' sx={{ color: '#9ca3af' }}>
               Quizzes completed
             </Typography>
-            <Typography
-              variant='h4'
-              sx={{ mt: 1, color: '#e5e7eb', fontWeight: 600 }}
-            >
+            <Typography variant='h4' sx={{ mt: 1, color: '#e5e7eb', fontWeight: 600 }}>
               24
             </Typography>
             <Typography variant='caption' sx={{ mt: 0.5, color: '#9ca3af' }}>
@@ -105,21 +89,14 @@ export default function StudentDashboardPage() {
           </Paper>
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Paper
-            sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}
-          >
+          <Paper sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}>
             <Typography variant='caption' sx={{ color: '#9ca3af' }}>
               Time spent practising
             </Typography>
-            <Typography
-              variant='h4'
-              sx={{ mt: 1, color: '#e5e7eb', fontWeight: 600 }}
-            >
+            <Typography variant='h4' sx={{ mt: 1, color: '#e5e7eb', fontWeight: 600 }}>
               3.4h
             </Typography>
-            <Box
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}
-            >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
               <Clock className='h-3 w-3' color='#38bdf8' />
               <Typography variant='caption' sx={{ color: '#9ca3af' }}>
                 This week
@@ -131,20 +108,12 @@ export default function StudentDashboardPage() {
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 8 }}>
-          <Paper
-            sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}
-          >
-            <Box
-              sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}
-            >
+          <Paper sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant='subtitle2' sx={{ color: '#e5e7eb' }}>
                 Lecture videos
               </Typography>
-              <Button
-                variant='text'
-                size='small'
-                sx={{ fontSize: 11, color: '#38bdf8' }}
-              >
+              <Button variant='text' size='small' sx={{ fontSize: 11, color: '#38bdf8' }}>
                 View all
               </Button>
             </Box>
@@ -158,21 +127,14 @@ export default function StudentDashboardPage() {
                   }}
                 >
                   <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{ color: '#e5e7eb', fontWeight: 500 }}
-                    >
+                    <Typography variant='body2' sx={{ color: '#e5e7eb', fontWeight: 500 }}>
                       Neural Networks – Week 3
                     </Typography>
                     <Typography variant='caption' sx={{ color: '#9ca3af' }}>
                       18 questions generated · 2 remaining
                     </Typography>
                   </Box>
-                  <Button
-                    variant='outlined'
-                    size='small'
-                    sx={{ borderRadius: 999, fontSize: 11 }}
-                  >
+                  <Button variant='outlined' size='small' sx={{ borderRadius: 999, fontSize: 11 }}>
                     <PlayCircle className='mr-1 h-4 w-4' color='#38bdf8' />
                     Quiz
                   </Button>
@@ -187,21 +149,14 @@ export default function StudentDashboardPage() {
                   }}
                 >
                   <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{ color: '#e5e7eb', fontWeight: 500 }}
-                    >
+                    <Typography variant='body2' sx={{ color: '#e5e7eb', fontWeight: 500 }}>
                       Gradient Descent – Recap
                     </Typography>
                     <Typography variant='caption' sx={{ color: '#9ca3af' }}>
                       12 questions generated · Completed
                     </Typography>
                   </Box>
-                  <Button
-                    variant='outlined'
-                    size='small'
-                    sx={{ borderRadius: 999, fontSize: 11 }}
-                  >
+                  <Button variant='outlined' size='small' sx={{ borderRadius: 999, fontSize: 11 }}>
                     Review
                   </Button>
                 </Box>
@@ -211,15 +166,11 @@ export default function StudentDashboardPage() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
-          <Paper
-            sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}
-          >
+          <Paper sx={{ p: 2.5, borderRadius: 3, bgcolor: 'rgba(15,23,42,0.95)' }}>
             <Typography variant='subtitle2' sx={{ color: '#e5e7eb' }}>
               Recent quiz history
             </Typography>
-            <Box
-              sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}
-            >
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Paper sx={{ p: 1.5, borderRadius: 2, bgcolor: '#020617' }}>
                 <Box
                   sx={{
@@ -229,10 +180,7 @@ export default function StudentDashboardPage() {
                   }}
                 >
                   <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{ color: '#e5e7eb', fontWeight: 500 }}
-                    >
+                    <Typography variant='body2' sx={{ color: '#e5e7eb', fontWeight: 500 }}>
                       Backpropagation – Core concepts
                     </Typography>
                     <Typography variant='caption' sx={{ color: '#9ca3af' }}>
@@ -259,10 +207,7 @@ export default function StudentDashboardPage() {
                   }}
                 >
                   <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{ color: '#e5e7eb', fontWeight: 500 }}
-                    >
+                    <Typography variant='body2' sx={{ color: '#e5e7eb', fontWeight: 500 }}>
                       Regularisation techniques
                     </Typography>
                     <Typography variant='caption' sx={{ color: '#9ca3af' }}>

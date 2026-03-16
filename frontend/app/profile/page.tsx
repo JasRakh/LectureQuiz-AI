@@ -25,8 +25,7 @@ export default function ProfilePage() {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor:
-          'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
+        bgcolor: 'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -43,62 +42,47 @@ export default function ProfilePage() {
           border: '1px solid rgba(148,163,184,0.25)',
         }}
       >
-        <Typography variant="h6" sx={{ color: '#e5e7eb', fontWeight: 600 }}>
+        <Typography variant='h6' sx={{ color: '#e5e7eb', fontWeight: 600 }}>
           Profile
         </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mt: 0.5, fontSize: 12, color: 'rgba(148,163,184,0.9)' }}
-        >
+        <Typography variant='body2' sx={{ mt: 0.5, fontSize: 12, color: 'rgba(148,163,184,0.9)' }}>
           Basic information about your LectureQuiz AI account.
         </Typography>
 
         <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Box>
-            <Typography
-              variant="caption"
-              sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}
-            >
+            <Typography variant='caption' sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}>
               Name
             </Typography>
-            <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
+            <Typography variant='body2' sx={{ color: '#e5e7eb' }}>
               {name ?? '—'}
             </Typography>
           </Box>
           <Box>
-            <Typography
-              variant="caption"
-              sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}
-            >
+            <Typography variant='caption' sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}>
               Email
             </Typography>
-            <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
+            <Typography variant='body2' sx={{ color: '#e5e7eb' }}>
               {email ?? '—'}
             </Typography>
           </Box>
           <Box>
-            <Typography
-              variant="caption"
-              sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}
-            >
+            <Typography variant='caption' sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}>
               Role
             </Typography>
             {role ? (
               <Chip
                 label={role === 'student' ? 'Student' : 'Professor'}
-                size="small"
+                size='small'
                 sx={{
                   borderRadius: 999,
                   fontSize: 11,
-                  bgcolor:
-                    role === 'student'
-                      ? 'rgba(59,130,246,0.15)'
-                      : 'rgba(139,92,246,0.15)',
+                  bgcolor: role === 'student' ? 'rgba(59,130,246,0.15)' : 'rgba(139,92,246,0.15)',
                   color: '#e5e7eb',
                 }}
               />
             ) : (
-              <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
+              <Typography variant='body2' sx={{ color: '#e5e7eb' }}>
                 —
               </Typography>
             )}
@@ -108,4 +92,3 @@ export default function ProfilePage() {
     </Box>
   );
 }
-

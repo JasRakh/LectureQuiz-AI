@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -21,14 +21,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       }
 
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         if (!res.ok) {
           router.replace('/login');
@@ -52,8 +49,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor:
-          'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
+        bgcolor: 'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
       }}
     >
       <MainNav />

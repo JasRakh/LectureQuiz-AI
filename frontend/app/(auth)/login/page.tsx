@@ -76,9 +76,7 @@ export default function LoginPage() {
         router.push('/dashboard/professor');
       }
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Unable to login right now',
-      );
+      toast.error(err instanceof Error ? err.message : 'Unable to login right now');
     }
   };
 
@@ -95,78 +93,53 @@ export default function LoginPage() {
         border: '1px solid rgba(148,163,184,0.25)',
       }}
     >
-      <Typography variant="h6" sx={{ color: '#e5e7eb', fontWeight: 600 }}>
+      <Typography variant='h6' sx={{ color: '#e5e7eb', fontWeight: 600 }}>
         Welcome back
       </Typography>
-      <Typography
-        variant="body2"
-        sx={{ mt: 0.5, fontSize: 12, color: 'rgba(148,163,184,0.9)' }}
-      >
+      <Typography variant='body2' sx={{ mt: 0.5, fontSize: 12, color: 'rgba(148,163,184,0.9)' }}>
         Log in to access your LectureQuiz AI dashboard.
       </Typography>
 
       <Box
-        component="form"
+        component='form'
         onSubmit={handleSubmit(onSubmit)}
         sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
       >
         <Box>
-          <Typography
-            variant="caption"
-            sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}
-          >
+          <Typography variant='caption' sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}>
             Email
           </Typography>
-          <Input
-            type="email"
-            placeholder="you@university.edu"
-            {...register('email')}
-          />
+          <Input type='email' placeholder='you@university.edu' {...register('email')} />
           {errors.email && (
-            <Typography variant="caption" sx={{ color: '#fb7185' }}>
+            <Typography variant='caption' sx={{ color: '#fb7185' }}>
               {errors.email.message}
             </Typography>
           )}
         </Box>
 
         <Box>
-          <Typography
-            variant="caption"
-            sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}
-          >
+          <Typography variant='caption' sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}>
             Password
           </Typography>
-          <Input
-            type="password"
-            placeholder="••••••••"
-            {...register('password')}
-          />
+          <Input type='password' placeholder='••••••••' {...register('password')} />
           {errors.password && (
-            <Typography variant="caption" sx={{ color: '#fb7185' }}>
+            <Typography variant='caption' sx={{ color: '#fb7185' }}>
               {errors.password.message}
             </Typography>
           )}
         </Box>
 
-        <Button
-          type="submit"
-          size="large"
-          disabled={isSubmitting}
-          sx={{ mt: 1 }}
-        >
+        <Button type='submit' size='large' disabled={isSubmitting} sx={{ mt: 1 }}>
           {isSubmitting ? 'Signing in...' : 'Sign in'}
         </Button>
       </Box>
 
       <Typography
-        variant="caption"
+        variant='caption'
         sx={{ mt: 2.5, display: 'block', textAlign: 'center', color: '#9ca3af' }}
       >
         Don&apos;t have an account?{' '}
-        <Link
-          href="/register"
-          style={{ color: '#a5b4fc', textDecoration: 'none' }}
-        >
+        <Link href='/register' style={{ color: '#a5b4fc', textDecoration: 'none' }}>
           Create one
         </Link>
       </Typography>
