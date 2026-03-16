@@ -57,13 +57,14 @@ export default function LoginPage() {
       }
 
       const data: {
-        user: { name: string; role: 'student' | 'professor' };
+        user: { name: string; email: string; role: 'student' | 'professor' };
         token: string;
       } = await res.json();
 
       if (typeof window !== 'undefined') {
         window.localStorage.setItem('lecturequiz_token', data.token);
         window.localStorage.setItem('lecturequiz_user_name', data.user.name);
+        window.localStorage.setItem('lecturequiz_user_email', data.user.email);
         window.localStorage.setItem('lecturequiz_user_role', data.user.role);
       }
 

@@ -8,6 +8,11 @@ import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
 
 const links = [
   { href: '#how-it-works', label: 'How it works' },
@@ -21,7 +26,10 @@ export const MainNav = () => {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [role, setRole] = useState<'student' | 'professor' | null>(null);
+  const [name, setName] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
 
   const isAuthPage =
     pathname.startsWith('/login') || pathname.startsWith('/register');
@@ -30,9 +38,13 @@ export const MainNav = () => {
     if (typeof window === 'undefined') return;
     const token = window.localStorage.getItem('lecturequiz_token');
     const storedRole = window.localStorage.getItem('lecturequiz_user_role');
+    const storedName = window.localStorage.getItem('lecturequiz_user_name');
     setIsLoggedIn(!!token);
     if (storedRole === 'student' || storedRole === 'professor') {
       setRole(storedRole);
+    }
+    if (storedName) {
+      setName(storedName);
     }
     setHydrated(true);
   }, [pathname]);
@@ -45,7 +57,17 @@ export const MainNav = () => {
     }
     setIsLoggedIn(false);
     setRole(null);
+    setName(null);
+    setAnchorEl(null);
     router.push('/login');
+  };
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
   return (
@@ -158,21 +180,70 @@ export const MainNav = () => {
         >
           {/* Avoid flicker between logged-out and logged-in buttons on first paint */}
           {!hydrated ? null : isLoggedIn ? (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button
-                variant="contained"
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton
                 size="small"
-                onClick={handleLogout}
-                sx={{
-                  borderRadius: 999,
-                  fontSize: 12,
-                  px: 2.5,
-                  background:
-                    'linear-gradient(135deg,#4f46e5,#0ea5e9,#22c55e)'
-                }}
+                onClick={handleAvatarClick}
+                sx={{ p: 0 }}
               >
-                Log out
-              </Button>
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: '#4f46e5',
+                    fontSize: 14
+                  }}
+                >
+                  {name ? name.charAt(0).toUpperCase() : 'U'}
+                </Avatar>
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={menuOpen}
+                onClose={handleMenuClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              >
+                <Box sx={{ px: 2, py: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {name ?? 'User'}
+                  </Typography>
+                  {role && (
+                    <Typography variant="caption" sx={{ color: '#6b7280' }}>
+                      {role === 'student' ? 'Student' : 'Professor'}
+                    </Typography>
+                  )}
+                </Box>
+                <Divider />
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    if (role === 'professor') {
+                      router.push('/dashboard/professor');
+                    } else {
+                      router.push('/dashboard/student');
+                    }
+                  }}
+                >
+                  Dashboard
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleMenuClose();
+                    router.push('/profile');
+                  }}
+                >
+                  Profile
+                </MenuItem>
+                <Divider />
+                <MenuItem
+                  onClick={() => {
+                    handleLogout();
+                  }}
+                >
+                  Log out
+                </MenuItem>
+              </Menu>
             </Box>
           ) : (
             <Box
