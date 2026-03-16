@@ -165,190 +165,457 @@ export default function LandingPage() {
           </Grid>
         </Grid>
 
-        <section id='how-it-works' className='space-y-6'>
-          <div className='flex items-center justify-between gap-4'>
-            <div>
-              <p className='text-xs font-semibold uppercase tracking-[0.2em] text-sky-300'>
+        {/* HOW IT WORKS */}
+        <Box id="how-it-works" sx={{ mt: 8 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  letterSpacing: ".2em",
+                  textTransform: "uppercase",
+                  color: "#7dd3fc"
+                }}
+              >
                 HOW IT WORKS
-              </p>
-              <h2 className='mt-2 text-xl font-semibold text-slate-50 md:text-2xl'>
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  mt: 1,
+                  color: "#e5e7eb",
+                  fontWeight: 600,
+                  fontSize: { xs: 18, md: 22 }
+                }}
+              >
                 From lecture video to adaptive quiz in three steps.
-              </h2>
-            </div>
-          </div>
+              </Typography>
+            </Box>
+          </Box>
 
-          <div className='grid gap-5 md:grid-cols-3'>
+          <Grid container spacing={2.5}>
             {[
               {
-                step: '01',
-                title: 'Ingest lecture video',
-                body: 'Upload from your LMS, Zoom, or local files. We normalise audio and prepare it for transcription.',
+                step: "01",
+                title: "Ingest lecture video",
+                body: "Upload from your LMS, Zoom, or local files. We normalise audio and prepare it for transcription."
               },
               {
-                step: '02',
-                title: 'Transcribe & understand',
-                body: 'Whisper converts speech into text while NLP models map key concepts, definitions, and relationships.',
+                step: "02",
+                title: "Transcribe & understand",
+                body: "Whisper converts speech into text while NLP models map key concepts, definitions, and relationships."
               },
               {
-                step: '03',
-                title: 'Generate adaptive quiz',
-                body: 'GPT / T5 generate concept-anchored questions tuned to student proficiency and learning goals.',
-              },
-            ].map((item) => (
-              <div key={item.step} className='glass-panel relative overflow-hidden p-5'>
-                <div className='pointer-events-none absolute inset-0 bg-gradient-to-br from-sky-500/15 via-transparent to-emerald-500/10' />
-                <div className='relative'>
-                  <p className='text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400'>
-                    STEP {item.step}
-                  </p>
-                  <h3 className='mt-2 text-sm font-semibold text-slate-50'>{item.title}</h3>
-                  <p className='mt-2 text-xs text-slate-400'>{item.body}</p>
-                </div>
-              </div>
+                step: "03",
+                title: "Generate adaptive quiz",
+                body: "GPT / T5 generate concept-anchored questions tuned to student proficiency and learning goals."
+              }
+            ].map((item, idx) => (
+              <Grid key={item.step} size={{ xs: 12, md: 4 }}>
+                <Paper
+                  elevation={10}
+                  sx={{
+                    position: "relative",
+                    p: 2.5,
+                    borderRadius: 3,
+                    overflow: "hidden",
+                    bgcolor: "rgba(15,23,42,0.96)",
+                    border: "1px solid rgba(148,163,184,0.35)",
+                    transform: "translateY(0px)",
+                    transition: "transform 180ms ease-out, box-shadow 180ms ease-out",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                      boxShadow: "0 18px 50px rgba(15,23,42,0.9)"
+                    }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "radial-gradient(circle at top,rgba(56,189,248,0.25),transparent 60%)",
+                      opacity: 0.4,
+                      pointerEvents: "none"
+                    }}
+                  />
+                  <Box sx={{ position: "relative" }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: 10,
+                        letterSpacing: ".3em",
+                        textTransform: "uppercase",
+                        color: "#9ca3af"
+                      }}
+                    >
+                      STEP {item.step}
+                    </Typography>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
+                    >
+                      {item.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ mt: 1, fontSize: 12, color: "#9ca3af" }}
+                    >
+                      {item.body}
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Grid>
             ))}
-          </div>
-        </section>
+          </Grid>
+        </Box>
 
-        <section id='features' className='space-y-6'>
-          <div className='flex flex-col gap-3 md:flex-row md:items-end md:justify-between'>
-            <div>
-              <p className='text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300'>
+        {/* FEATURES */}
+        <Box id="features" sx={{ mt: 10 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              justifyContent: "space-between",
+              gap: 2,
+              mb: 3
+            }}
+          >
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  letterSpacing: ".2em",
+                  textTransform: "uppercase",
+                  color: "#a5b4fc"
+                }}
+              >
                 PLATFORM FEATURES
-              </p>
-              <h2 className='mt-2 text-xl font-semibold text-slate-50 md:text-2xl'>
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  mt: 1,
+                  color: "#e5e7eb",
+                  fontWeight: 600,
+                  fontSize: { xs: 18, md: 22 }
+                }}
+              >
                 Built for real lecture workflows, not generic quizzes.
-              </h2>
-            </div>
-          </div>
+              </Typography>
+            </Box>
+          </Box>
 
-          <div className='grid gap-5 md:grid-cols-3'>
-            <div className='glass-panel p-5'>
-              <h3 className='text-sm font-semibold text-slate-50'>
-                Concept-aware question generation
-              </h3>
-              <p className='mt-2 text-xs text-slate-400'>
-                Questions are anchored to core concepts, not random sentences. Every item knows
-                exactly which learning outcome it targets.
-              </p>
-            </div>
-            <div className='glass-panel p-5'>
-              <h3 className='text-sm font-semibold text-slate-50'>Difficulty-curved quizzes</h3>
-              <p className='mt-2 text-xs text-slate-400'>
-                Start with warm-up questions, then ramp up to deeper application and synthesis using
-                prior performance data.
-              </p>
-            </div>
-            <div className='glass-panel p-5'>
-              <h3 className='text-sm font-semibold text-slate-50'>LMS-friendly & privacy-first</h3>
-              <p className='mt-2 text-xs text-slate-400'>
-                Designed to plug into existing LMS workflows and keep student data encrypted and
-                under institutional control.
-              </p>
-            </div>
-          </div>
-        </section>
+          <Grid container spacing={2.5}>
+            {[
+              {
+                title: "Concept-aware question generation",
+                body: "Questions are anchored to core concepts, not random sentences. Every item knows exactly which learning outcome it targets."
+              },
+              {
+                title: "Difficulty-curved quizzes",
+                body: "Start with warm-up questions, then ramp up to deeper application and synthesis using prior performance data."
+              },
+              {
+                title: "LMS-friendly & privacy-first",
+                body: "Designed to plug into existing LMS workflows and keep student data encrypted and under institutional control."
+              }
+            ].map((item, idx) => (
+              <Grid key={item.title} size={{ xs: 12, md: 4 }}>
+                <Paper
+                  sx={{
+                    p: 2.5,
+                    borderRadius: 3,
+                    bgcolor: "rgba(15,23,42,0.96)",
+                    border: "1px solid rgba(148,163,184,0.35)",
+                    height: "100%"
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ color: "#e5e7eb", fontWeight: 600 }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ mt: 1, fontSize: 12, color: "#9ca3af" }}
+                  >
+                    {item.body}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
 
-        <section id='benefits' className='grid gap-6 md:grid-cols-2'>
-          <div className='glass-panel p-6'>
-            <p className='text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300'>
-              FOR PROFESSORS
-            </p>
-            <h3 className='mt-2 text-lg font-semibold text-slate-50'>
-              Turn lectures into assessments without extra prep time.
-            </h3>
-            <ul className='mt-4 space-y-2 text-xs text-slate-300'>
-              <li>• Auto-generate quizzes minutes after each lecture.</li>
-              <li>• Map questions to learning outcomes and modules.</li>
-              <li>• See which concepts need reteaching at a glance.</li>
-              <li>• Export to LMS or share links with one click.</li>
-            </ul>
-          </div>
-
-          <div className='glass-panel p-6'>
-            <p className='text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300'>
-              FOR STUDENTS
-            </p>
-            <h3 className='mt-2 text-lg font-semibold text-slate-50'>
-              Adaptive practice that follows the lecture, not the textbook.
-            </h3>
-            <ul className='mt-4 space-y-2 text-xs text-slate-300'>
-              <li>• Quiz directly on what you just watched.</li>
-              <li>• Focus on weak spots with targeted retries.</li>
-              <li>• Track progress across lectures and weeks.</li>
-              <li>• Revisit tricky segments with time-stamped links.</li>
-            </ul>
-          </div>
-        </section>
-
-        <section
-          id='demo'
-          className='glass-panel flex flex-col gap-6 p-6 md:flex-row md:items-center'
+        {/* BENEFITS */}
+        <Grid
+          id="benefits"
+          container
+          spacing={2.5}
+          sx={{ mt: 10 }}
         >
-          <div className='flex-1 space-y-3'>
-            <p className='text-xs font-semibold uppercase tracking-[0.2em] text-sky-300'>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                bgcolor: "rgba(15,23,42,0.96)",
+                border: "1px solid rgba(129,140,248,0.45)"
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  letterSpacing: ".2em",
+                  textTransform: "uppercase",
+                  color: "#a5b4fc"
+                }}
+              >
+                FOR PROFESSORS
+              </Typography>
+              <Typography
+                variant="subtitle1"
+                sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
+              >
+                Turn lectures into assessments without extra prep time.
+              </Typography>
+              <Box
+                component="ul"
+                sx={{
+                  mt: 2,
+                  pl: 2,
+                  fontSize: 12,
+                  color: "#cbd5f5",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5
+                }}
+              >
+                <li>Auto-generate quizzes minutes after each lecture.</li>
+                <li>Map questions to learning outcomes and modules.</li>
+                <li>See which concepts need reteaching at a glance.</li>
+                <li>Export to LMS or share links with one click.</li>
+              </Box>
+            </Paper>
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                bgcolor: "rgba(15,23,42,0.96)",
+                border: "1px solid rgba(52,211,153,0.55)"
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  letterSpacing: ".2em",
+                  textTransform: "uppercase",
+                  color: "#6ee7b7"
+                }}
+              >
+                FOR STUDENTS
+              </Typography>
+              <Typography
+                variant="subtitle1"
+                sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
+              >
+                Adaptive practice that follows the lecture, not the textbook.
+              </Typography>
+              <Box
+                component="ul"
+                sx={{
+                  mt: 2,
+                  pl: 2,
+                  fontSize: 12,
+                  color: "#cbd5f5",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5
+                }}
+              >
+                <li>Quiz directly on what you just watched.</li>
+                <li>Focus on weak spots with targeted retries.</li>
+                <li>Track progress across lectures and weeks.</li>
+                <li>Revisit tricky segments with time-stamped links.</li>
+              </Box>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* DEMO */}
+        <Paper
+          id="demo"
+          sx={{
+            mt: 10,
+            p: 3,
+            borderRadius: 3,
+            bgcolor: "rgba(15,23,42,0.96)",
+            border: "1px solid rgba(148,163,184,0.35)",
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2.5
+          }}
+        >
+          <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                letterSpacing: ".2em",
+                textTransform: "uppercase",
+                color: "#7dd3fc"
+              }}
+            >
               INTERACTIVE DEMO
-            </p>
-            <h3 className='text-lg font-semibold text-slate-50'>
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{ color: "#e5e7eb", fontWeight: 600 }}
+            >
               Experience the professor and student dashboards.
-            </h3>
-            <p className='text-xs text-slate-300'>
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ fontSize: 12, color: "#9ca3af" }}
+            >
               Explore how LectureQuiz AI visualises lecture coverage, question quality, and student
               performance with live dashboards.
-            </p>
-            <div className='flex flex-wrap gap-3 text-xs'>
-              <Button>
-                <Link href='/dashboard/professor'>Professor dashboard</Link>
+            </Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mt: 1 }}>
+              <Button
+                component={Link}
+                href="/dashboard/professor"
+                size="small"
+              >
+                Professor dashboard
               </Button>
-              <Button className='border-border/70'>
-                <Link href='/dashboard/student'>Student dashboard</Link>
+              <Button
+                component={Link}
+                href="/dashboard/student"
+                size="small"
+                variant="outlined"
+              >
+                Student dashboard
               </Button>
-            </div>
-          </div>
-          <div className='flex-1 rounded-2xl border border-border/70 bg-slate-950/70 p-4 text-xs text-slate-300'>
-            <p className='font-medium text-slate-100'>
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              flex: 1,
+              borderRadius: 3,
+              border: "1px solid rgba(148,163,184,0.4)",
+              bgcolor: "#020617",
+              p: 2,
+              fontSize: 12,
+              color: "#9ca3af"
+            }}
+          >
+            <Typography
+              variant="subtitle2"
+              sx={{ color: "#e5e7eb", fontWeight: 500 }}
+            >
               This is where a real product demo or embedded video would live.
-            </p>
-            <p className='mt-2'>
+            </Typography>
+            <Typography variant="body2" sx={{ mt: 1.5, fontSize: 12 }}>
               In production, this surface can showcase AI-generated quiz flows: upload a short
               lecture sample, watch Whisper transcribe it, then preview generated questions live.
-            </p>
-          </div>
-        </section>
+            </Typography>
+          </Box>
+        </Paper>
 
-        <section className='glass-panel flex flex-col items-center justify-between gap-4 p-6 text-center md:flex-row md:text-left'>
-          <div>
-            <p className='text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300'>
+        {/* CTA + FOOTER */}
+        <Paper
+          sx={{
+            mt: 10,
+            p: 3,
+            borderRadius: 3,
+            bgcolor: "rgba(15,23,42,0.96)",
+            border: "1px solid rgba(148,163,184,0.35)",
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            justifyContent: "space-between",
+            gap: 2
+          }}
+        >
+          <Box>
+            <Typography
+              variant="caption"
+              sx={{
+                letterSpacing: ".2em",
+                textTransform: "uppercase",
+                color: "#a5b4fc"
+              }}
+            >
               READY TO TRY
-            </p>
-            <h3 className='mt-2 text-lg font-semibold text-slate-50'>
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
+            >
               Pilot LectureQuiz AI with your next course.
-            </h3>
-            <p className='mt-2 text-xs text-slate-300'>
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ mt: 1, fontSize: 12, color: "#9ca3af" }}
+            >
               Start with a single module, measure concept mastery, and scale to your entire program
               with confidence.
-            </p>
-          </div>
-          <div className='flex flex-col gap-2 text-xs md:flex-row'>
-            <Button className='text-sm'>
-              <Link href='/register'>Create educator account</Link>
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 1.5
+            }}
+          >
+            <Button
+              component={Link}
+              href="/register"
+              size="large"
+            >
+              Create educator account
             </Button>
-            <Button className='border border-border/70 bg-slate-900/70 text-sm'>
-              <a href='#demo'>View live demo</a>
+            <Button
+              component="a"
+              href="#demo"
+              size="large"
+              variant="outlined"
+            >
+              View live demo
             </Button>
-          </div>
-        </section>
+          </Box>
+        </Paper>
 
-        <footer className='flex flex-col items-center justify-between gap-3 text-[11px] text-slate-500 md:flex-row'>
-          <p>© {new Date().getFullYear()} LectureQuiz AI. All rights reserved.</p>
-          <div className='flex gap-4'>
-            <a href='#' className='hover:text-slate-300'>
+        <Box
+          component="footer"
+          sx={{
+            mt: 4,
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 11,
+            color: "#6b7280",
+            gap: 1.5
+          }}
+        >
+          <Typography variant="caption">
+            © {new Date().getFullYear()} LectureQuiz AI. All rights reserved.
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Link href="#" style={{ color: "inherit", textDecoration: "none" }}>
               Privacy
-            </a>
-            <a href='#' className='hover:text-slate-300'>
+            </Link>
+            <Link href="#" style={{ color: "inherit", textDecoration: "none" }}>
               Terms
-            </a>
-          </div>
-        </footer>
+            </Link>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );
