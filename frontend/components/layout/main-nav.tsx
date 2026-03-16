@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Box from '@mui/material/Box';
@@ -17,9 +18,35 @@ const links = [
 
 export const MainNav = () => {
   const pathname = usePathname() ?? '/';
+  const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<'student' | 'professor' | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   const isAuthPage =
     pathname.startsWith('/login') || pathname.startsWith('/register');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const token = window.localStorage.getItem('lecturequiz_token');
+    const storedRole = window.localStorage.getItem('lecturequiz_user_role');
+    setIsLoggedIn(!!token);
+    if (storedRole === 'student' || storedRole === 'professor') {
+      setRole(storedRole);
+    }
+    setHydrated(true);
+  }, [pathname]);
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('lecturequiz_token');
+      window.localStorage.removeItem('lecturequiz_user_name');
+      window.localStorage.removeItem('lecturequiz_user_role');
+    }
+    setIsLoggedIn(false);
+    setRole(null);
+    router.push('/login');
+  };
 
   return (
     <AppBar
@@ -36,7 +63,10 @@ export const MainNav = () => {
           maxWidth: 1200,
           mx: 'auto',
           px: { xs: 2, md: 3 },
-          py: 1.5
+          py: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
         }}
       >
         <Box
@@ -46,7 +76,8 @@ export const MainNav = () => {
             display: 'flex',
             alignItems: 'center',
             gap: 1,
-            textDecoration: 'none'
+            textDecoration: 'none',
+            flexShrink: 0
           }}
         >
           <Box
@@ -88,8 +119,7 @@ export const MainNav = () => {
             sx={{
               display: { xs: 'none', md: 'flex' },
               gap: 3,
-              ml: 4,
-              flexGrow: 1
+              ml: 4
             }}
           >
             {links.map((link) => (
@@ -115,43 +145,73 @@ export const MainNav = () => {
           </Box>
         )}
 
-        <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
-          <Box
-            sx={{
-              display: { xs: isAuthPage ? 'none' : 'flex', sm: 'flex' },
-              gap: 1
-            }}
-          >
-            <Button
-              component={Link}
-              href="/login"
-              variant="outlined"
-              size="small"
+        {/* flexible spacer so logo/text don't collide with auth buttons */}
+        <Box sx={{ flexGrow: 1 }} />
+
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1.5,
+            flexShrink: 0,
+            ml: isAuthPage ? 4 : 0
+          }}
+        >
+          {/* Avoid flicker between logged-out and logged-in buttons on first paint */}
+          {!hydrated ? null : isLoggedIn ? (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleLogout}
+                sx={{
+                  borderRadius: 999,
+                  fontSize: 12,
+                  px: 2.5,
+                  background:
+                    'linear-gradient(135deg,#4f46e5,#0ea5e9,#22c55e)'
+                }}
+              >
+                Log out
+              </Button>
+            </Box>
+          ) : (
+            <Box
               sx={{
-                borderRadius: 999,
-                fontSize: 12,
-                borderColor: 'rgba(148,163,184,0.4)',
-                color: '#e5e7eb'
+                display: { xs: isAuthPage ? 'none' : 'flex', sm: 'flex' },
+                gap: 1
               }}
             >
-              Log in
-            </Button>
-            <Button
-              component={Link}
-              href="/register"
-              variant="contained"
-              size="small"
-              sx={{
-                borderRadius: 999,
-                fontSize: 12,
-                px: 2.5,
-                background:
-                  'linear-gradient(135deg,#4f46e5,#0ea5e9,#22c55e)'
-              }}
-            >
-              Get started
-            </Button>
-          </Box>
+              <Button
+                component={Link}
+                href="/login"
+                variant="outlined"
+                size="small"
+                sx={{
+                  borderRadius: 999,
+                  fontSize: 12,
+                  borderColor: 'rgba(148,163,184,0.4)',
+                  color: '#e5e7eb'
+                }}
+              >
+                Log in
+              </Button>
+              <Button
+                component={Link}
+                href="/register"
+                variant="contained"
+                size="small"
+                sx={{
+                  borderRadius: 999,
+                  fontSize: 12,
+                  px: 2.5,
+                  background:
+                    'linear-gradient(135deg,#4f46e5,#0ea5e9,#22c55e)'
+                }}
+              >
+                Get started
+              </Button>
+            </Box>
+          )}
         </Box>
       </Toolbar>
     </AppBar>

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -19,6 +20,8 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -33,20 +36,47 @@ export default function LoginPage() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/auth/login', {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL;
+
+      if (!apiBase) {
+        toast.error('API URL is not configured (NEXT_PUBLIC_API_URL)');
+        return;
+      }
+
+      console.log('Submitting login', { values, apiBase });
+
+      const res = await fetch(`${apiBase}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
       if (!res.ok) {
-        throw new Error('Invalid credentials');
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.message || 'Invalid credentials');
+      }
+
+      const data: {
+        user: { name: string; role: 'student' | 'professor' };
+        token: string;
+      } = await res.json();
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('lecturequiz_token', data.token);
+        window.localStorage.setItem('lecturequiz_user_name', data.user.name);
+        window.localStorage.setItem('lecturequiz_user_role', data.user.role);
       }
 
       toast.success('Logged in successfully');
+
+      if (data.user.role === 'student') {
+        router.push('/dashboard/student');
+      } else {
+        router.push('/dashboard/professor');
+      }
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Unable to login right now'
+        err instanceof Error ? err.message : 'Unable to login right now',
       );
     }
   };

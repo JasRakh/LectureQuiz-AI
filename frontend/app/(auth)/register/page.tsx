@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -25,9 +26,13 @@ const registerSchema = z.object({
 type RegisterValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -39,24 +44,49 @@ export default function RegisterPage() {
     }
   });
 
+  const selectedRole = watch("role");
+
   const onSubmit = async (values: RegisterValues) => {
     try {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "/auth/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values)
-        }
-      );
+      const apiBase = process.env.NEXT_PUBLIC_API_URL;
+
+      if (!apiBase) {
+        toast.error("API URL is not configured (NEXT_PUBLIC_API_URL)");
+        return;
+      }
+
+      // Helpful for debugging in the browser console if something still fails
+      console.log("Submitting register", { values, apiBase });
+
+      const res = await fetch(`${apiBase}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.message || "Unable to register");
       }
 
+      const data: {
+        user: { name: string; role: "student" | "professor" };
+        token: string;
+      } = await res.json();
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("lecturequiz_token", data.token);
+        window.localStorage.setItem("lecturequiz_user_name", data.user.name);
+        window.localStorage.setItem("lecturequiz_user_role", data.user.role);
+      }
+
       toast.success("Account created successfully");
-      // TODO: route based on role or push to /login
+
+      if (data.user.role === "student") {
+        router.push("/dashboard/student");
+      } else {
+        router.push("/dashboard/professor");
+      }
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Unable to register right now"
@@ -141,20 +171,20 @@ export default function RegisterPage() {
             Role
           </Typography>
           <Stack direction="row" spacing={1}>
-            {(["student", "professor"] as const).map((roleOption) => (
-              <Chip
-                key={roleOption}
-                label={roleOption === "student" ? "Student" : "Professor"}
-                onClick={() =>
-                  (document.querySelector<HTMLInputElement>(
-                    `input[value='${roleOption}']`
-                  ))?.click()
-                }
-                clickable
-                variant="outlined"
-                sx={{ borderRadius: 999, fontSize: 11 }}
-              />
-            ))}
+            {(["student", "professor"] as const).map((roleOption) => {
+              const isSelected = selectedRole === roleOption;
+              return (
+                <Chip
+                  key={roleOption}
+                  label={roleOption === "student" ? "Student" : "Professor"}
+                  onClick={() => setValue("role", roleOption)}
+                  clickable
+                  variant={isSelected ? "filled" : "outlined"}
+                  color={isSelected ? "primary" : "default"}
+                  sx={{ borderRadius: 999, fontSize: 11 }}
+                />
+              );
+            })}
           </Stack>
           <input
             type="radio"

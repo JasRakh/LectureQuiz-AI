@@ -1,3 +1,6 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Button } from '../../../components/ui/button';
 import { PlayCircle, TrendingUp, Clock } from 'lucide-react';
 import Box from '@mui/material/Box';
@@ -7,6 +10,16 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 
 export default function StudentDashboardPage() {
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedName = window.localStorage.getItem('lecturequiz_user_name');
+    if (storedName) {
+      setName(storedName);
+    }
+  }, []);
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box
@@ -33,7 +46,7 @@ export default function StudentDashboardPage() {
             variant='h5'
             sx={{ mt: 1, color: '#e5e7eb', fontWeight: 600 }}
           >
-            Welcome back, Alex.
+            {name ? `Welcome back, ${name}.` : 'Welcome back.'}
           </Typography>
           <Typography
             variant='body2'
