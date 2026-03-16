@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
@@ -20,21 +20,21 @@ model User {
 }
 
 model Lecture {
-  id          String   @id @default(cuid())
+  id          Int      @id @default(autoincrement())
   title       String
   videoUrl    String
   createdAt   DateTime @default(now())
 
   professor   User     @relation("ProfessorLectures", fields: [professorId], references: [id])
-  professorId String
+  professorId Int
 
   quizzes     Quiz[]
 }
 
 model Quiz {
-  id             String    @id @default(cuid())
+  id             Int       @id @default(autoincrement())
   lecture        Lecture   @relation(fields: [lectureId], references: [id])
-  lectureId      String
+  lectureId      Int
   generatedFromAI Boolean  @default(true)
   createdAt      DateTime  @default(now())
 
@@ -43,20 +43,20 @@ model Quiz {
 }
 
 model Question {
-  id            String   @id @default(cuid())
+  id            Int      @id @default(autoincrement())
   quiz          Quiz     @relation(fields: [quizId], references: [id])
-  quizId        String
+  quizId        Int
   question      String
   options       String   // JSON stringified array of options
   correctAnswer String
 }
 
 model QuizResult {
-  id        String   @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   student   User     @relation(fields: [studentId], references: [id])
-  studentId String
+  studentId Int
   quiz      Quiz     @relation(fields: [quizId], references: [id])
-  quizId    String
+  quizId    Int
   score     Int
   createdAt DateTime @default(now())
 }

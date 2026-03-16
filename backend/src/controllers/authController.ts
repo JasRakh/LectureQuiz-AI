@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { z } from "zod";
 import { registerUser, loginUser } from "../services/authService";
+import { prisma } from "../prisma/client";
+import { AuthRequest } from "../middleware/auth";
 
 const registerSchema = z.object({
   name: z.string().min(2),
@@ -54,5 +56,27 @@ export async function loginHandler(req: Request, res: Response) {
     }
     return res.status(401).json({ message: (err as Error).message });
   }
+}
+
+export async function meHandler(req: AuthRequest, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true
+    }
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  return res.json({ user });
 }
 

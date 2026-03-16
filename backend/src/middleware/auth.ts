@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 
 export interface AuthPayload {
-  userId: string;
+  userId: number;
   role: "student" | "professor";
 }
 
