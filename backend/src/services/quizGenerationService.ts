@@ -1,46 +1,92 @@
-import { prisma } from "../prisma/client";
+import { randomUUID } from 'crypto';
+import fs from 'fs/promises';
+import os from 'os';
+import path from 'path';
+import { prisma } from '../prisma/client';
+import { generateBulletPointsAndQuiz, transcribeAudioFile } from './lectureAiService';
+import { extractAudioToMp3 } from './videoAudioService';
+import { resolveVideoFileForProcessing } from './videoPaths';
 
-/**
- * This service encapsulates the integration points for AI-based quiz generation.
- *
- * In a production system you would:
- * - Use Whisper (or another Speech-to-Text engine) to convert lecture audio to text.
- * - Use GPT / T5 (or similar NLP models) to generate concept-anchored questions
- *   from the transcript and structured lecture metadata.
- *
- * The functions below intentionally focus on the orchestration shape so that
- * the AI plumbing can be dropped in without reshaping the rest of the backend.
- */
+const WHISPER_MAX_BYTES = 25 * 1024 * 1024;
 
-export async function generateQuizFromLecture(lectureId: string) {
+export async function generateQuizFromLecture(lectureId: number) {
   const lecture = await prisma.lecture.findUnique({
-    where: { id: lectureId }
+    where: { id: lectureId },
   });
 
   if (!lecture) {
-    throw new Error("Lecture not found");
+    throw new Error('Lecture not found');
   }
 
-  // TODO: Integrate Speech-to-Text (Whisper) here.
-  // 1. Fetch video from lecture.videoUrl (cloud storage / LMS).
-  // 2. Stream audio to Whisper and obtain a high-quality transcript.
-  // const transcript = await whisperTranscribe(lecture.videoUrl);
+  let videoCleanup: (() => Promise<void>) | undefined;
+  const tmpAudio = path.join(os.tmpdir(), `lecture-audio-${randomUUID()}.mp3`);
 
-  // TODO: Integrate NLP Question Generation (GPT / T5) here.
-  // 3. Feed transcript into GPT / T5 with instructions & schema
-  //    to generate a structured set of questions, options, and correct answers.
-  // const generated = await generateQuestionsWithGPT(transcript);
+  try {
+    const { localPath: videoPath, cleanup } = await resolveVideoFileForProcessing(lecture.videoUrl);
+    videoCleanup = cleanup;
 
-  // For now we persist an empty quiz shell as a placeholder.
-  const quiz = await prisma.quiz.create({
-    data: {
-      lectureId: lecture.id,
-      generatedFromAI: true
-      // In a real implementation, you would also create Question records
-      // from the model output within the same transaction.
+    await extractAudioToMp3(videoPath, tmpAudio);
+
+    const stat = await fs.stat(tmpAudio);
+    if (stat.size > WHISPER_MAX_BYTES) {
+      throw new Error(
+        'Extracted audio exceeds 25MB (Whisper API limit). Try a shorter video or re-encode with a lower bitrate.'
+      );
     }
-  });
 
-  return quiz;
+    const transcript = await transcribeAudioFile(tmpAudio);
+    if (!transcript) {
+      throw new Error('Transcription returned empty text');
+    }
+
+    const { bulletPoints, questions } = await generateBulletPointsAndQuiz(transcript);
+
+    const quiz = await prisma.$transaction(async (tx) => {
+      await tx.lecture.update({
+        where: { id: lecture.id },
+        data: {
+          transcript,
+          bulletPoints: JSON.stringify(bulletPoints),
+        },
+      });
+
+      const q = await tx.quiz.create({
+        data: {
+          lectureId: lecture.id,
+          generatedFromAI: true,
+        },
+      });
+
+      for (const item of questions) {
+        await tx.question.create({
+          data: {
+            quizId: q.id,
+            question: item.question,
+            options: JSON.stringify(item.options),
+            correctAnswer: item.correctAnswer,
+          },
+        });
+      }
+
+      return tx.quiz.findUnique({
+        where: { id: q.id },
+        include: { questions: true },
+      });
+    });
+
+    if (!quiz) {
+      throw new Error('Failed to load created quiz');
+    }
+
+    return {
+      quiz,
+      transcript,
+      bulletPoints,
+    };
+  } finally {
+    await fs.unlink(tmpAudio).catch(() => {});
+    if (videoCleanup) {
+      await videoCleanup();
+    }
+  }
 }
-

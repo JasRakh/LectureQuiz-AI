@@ -23,6 +23,8 @@ model Lecture {
   id          Int      @id @default(autoincrement())
   title       String
   videoUrl    String
+  transcript  String?  @db.Text
+  bulletPoints String? // JSON string[] — key ideas from the lecture
   createdAt   DateTime @default(now())
 
   professor   User     @relation("ProfessorLectures", fields: [professorId], references: [id])

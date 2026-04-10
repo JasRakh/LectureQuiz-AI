@@ -8,12 +8,12 @@ const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
-  role: z.enum(["student", "professor"])
+  role: z.enum(["student", "professor"]),
 });
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(6)
+  password: z.string().min(6),
 });
 
 export async function registerHandler(req: Request, res: Response) {
@@ -25,13 +25,15 @@ export async function registerHandler(req: Request, res: Response) {
         id: result.user.id,
         name: result.user.name,
         email: result.user.email,
-        role: result.user.role
+        role: result.user.role,
       },
-      token: result.token
+      token: result.token,
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ message: "Invalid payload", errors: err.errors });
+      return res
+        .status(400)
+        .json({ message: "Invalid payload", errors: err.errors });
     }
     return res.status(400).json({ message: (err as Error).message });
   }
@@ -46,13 +48,15 @@ export async function loginHandler(req: Request, res: Response) {
         id: result.user.id,
         name: result.user.name,
         email: result.user.email,
-        role: result.user.role
+        role: result.user.role,
       },
-      token: result.token
+      token: result.token,
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ message: "Invalid payload", errors: err.errors });
+      return res
+        .status(400)
+        .json({ message: "Invalid payload", errors: err.errors });
     }
     return res.status(401).json({ message: (err as Error).message });
   }
@@ -63,20 +67,23 @@ export async function meHandler(req: AuthRequest, res: Response) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: req.user.userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-  });
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    return res.json({ user });
+  } catch (err) {
+    return res.status(500).json({ message: (err as Error).message });
   }
-
-  return res.json({ user });
 }
-
