@@ -8,7 +8,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: 'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
+        background: 'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
       }}
     >
       <MainNav />

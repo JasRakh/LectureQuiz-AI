@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import express from "express";
 import cors from "cors";
 import { env } from "./config/env";
@@ -9,10 +11,14 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_ORIGIN || "http://localhost:3000"
+    origin: env.frontendOrigin
   })
 );
 app.use(express.json());
+
+const uploadDir = path.join(process.cwd(), env.uploadDir);
+fs.mkdirSync(uploadDir, { recursive: true });
+app.use("/uploads", express.static(uploadDir));
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });

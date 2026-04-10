@@ -4,28 +4,54 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [name, setName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [role, setRole] = useState<'student' | 'professor' | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const token = window.localStorage.getItem('lecturequiz_token');
+    if (!token) {
+      router.replace('/login');
+      return;
+    }
     setName(window.localStorage.getItem('lecturequiz_user_name'));
     setEmail(window.localStorage.getItem('lecturequiz_user_email'));
     const storedRole = window.localStorage.getItem('lecturequiz_user_role');
     if (storedRole === 'student' || storedRole === 'professor') {
       setRole(storedRole);
     }
-  }, []);
+    setLoading(false);
+  }, [router]);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: 'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <CircularProgress size={32} sx={{ color: '#818cf8' }} />
+      </Box>
+    );
+  }
 
   return (
     <Box
       sx={{
         minHeight: '100vh',
-        bgcolor: 'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
+        background: 'radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

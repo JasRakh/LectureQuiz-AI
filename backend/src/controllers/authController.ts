@@ -63,20 +63,24 @@ export async function meHandler(req: AuthRequest, res: Response) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: req.user.userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-  });
 
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    return res.json({ user });
+  } catch (err) {
+    return res.status(500).json({ message: (err as Error).message });
   }
-
-  return res.json({ user });
 }
 

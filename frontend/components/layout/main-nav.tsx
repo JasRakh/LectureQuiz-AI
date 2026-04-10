@@ -52,6 +52,7 @@ export const MainNav = () => {
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('lecturequiz_token');
       window.localStorage.removeItem('lecturequiz_user_name');
+      window.localStorage.removeItem('lecturequiz_user_email');
       window.localStorage.removeItem('lecturequiz_user_role');
     }
     setIsLoggedIn(false);
