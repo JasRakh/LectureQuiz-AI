@@ -1,3 +1,5 @@
+'use client';
+
 import { MainNav } from '../components/layout/main-nav';
 import { Button } from '../components/ui/button';
 import {
@@ -209,12 +211,12 @@ export default function LandingPage() {
               {
                 step: '02',
                 title: 'Transcribe & understand',
-                body: 'Whisper converts speech into text while NLP models map key concepts, definitions, and relationships.',
+                body: 'Whisper (OpenAI API or local) turns speech into text; optional language hints keep technical terms accurate.',
               },
               {
                 step: '03',
                 title: 'Generate adaptive quiz',
-                body: 'GPT / T5 generate concept-anchored questions tuned to student proficiency and learning goals.',
+                body: 'Claude reads the transcript to produce bullet summaries and concept-anchored multiple-choice questions.',
               },
             ].map((item) => (
               <div
@@ -341,8 +343,8 @@ export default function LandingPage() {
             </p>
             <p className='mt-2'>
               In production, this surface can showcase AI-generated quiz flows:
-              upload a short lecture sample, watch Whisper transcribe it, then
-              preview generated questions live.
+              upload a short lecture sample, run Whisper for the transcript, then
+              preview Claude-generated questions live.
             </p>
           </div>
         </section>

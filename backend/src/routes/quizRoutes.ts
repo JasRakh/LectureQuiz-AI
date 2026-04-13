@@ -4,12 +4,23 @@ import { prisma } from "../prisma/client";
 
 export const quizRouter = Router();
 
+function parseQuizIdParam(param: string): number | null {
+  const n = Number.parseInt(param, 10);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return n;
+}
+
 quizRouter.get(
   "/:id",
   authenticate,
   async (req: AuthRequest, res) => {
+    const quizId = parseQuizIdParam(req.params.id);
+    if (quizId === null) {
+      return res.status(400).json({ message: "Invalid quiz id" });
+    }
+
     const quiz = await prisma.quiz.findUnique({
-      where: { id: req.params.id },
+      where: { id: quizId },
       include: { questions: true }
     });
     if (!quiz) {
@@ -23,7 +34,11 @@ quizRouter.post(
   "/:id/submit",
   authenticate,
   async (req: AuthRequest, res) => {
-    const quizId = req.params.id;
+    const quizId = parseQuizIdParam(req.params.id);
+    if (quizId === null) {
+      return res.status(400).json({ message: "Invalid quiz id" });
+    }
+
     const { score } = req.body as { score: number };
 
     const quiz = await prisma.quiz.findUnique({ where: { id: quizId } });

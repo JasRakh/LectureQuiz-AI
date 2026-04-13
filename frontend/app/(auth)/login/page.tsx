@@ -3,6 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import { Input } from '../../../components/ui/input';
 import { Button } from '../../../components/ui/button';
 import Link from 'next/link';
@@ -18,7 +19,10 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
+const TOKEN_KEY = 'lq_token';
+
 export default function LoginPage() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -33,7 +37,8 @@ export default function LoginPage() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + '/auth/login', {
+      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${base}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
@@ -43,7 +48,17 @@ export default function LoginPage() {
         throw new Error('Invalid credentials');
       }
 
+      const data = (await res.json()) as {
+        token: string;
+        user: { role: string };
+      };
+      localStorage.setItem(TOKEN_KEY, data.token);
       toast.success('Logged in successfully');
+      if (data.user.role === 'professor') {
+        router.push('/dashboard/professor');
+      } else {
+        router.push('/dashboard/student');
+      }
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : 'Unable to login right now'

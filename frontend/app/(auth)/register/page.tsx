@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import Link from "next/link";
@@ -24,10 +25,15 @@ const registerSchema = z.object({
 
 type RegisterValues = z.infer<typeof registerSchema>;
 
+const TOKEN_KEY = "lq_token";
+
 export default function RegisterPage() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting }
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
@@ -39,24 +45,33 @@ export default function RegisterPage() {
     }
   });
 
+  const roleValue = watch("role");
+
   const onSubmit = async (values: RegisterValues) => {
     try {
-      const res = await fetch(
-        process.env.NEXT_PUBLIC_API_URL + "/auth/register",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values)
-        }
-      );
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      const res = await fetch(`${base}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values)
+      });
 
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.message || "Unable to register");
       }
 
+      const data = (await res.json()) as {
+        token: string;
+        user: { role: string };
+      };
+      localStorage.setItem(TOKEN_KEY, data.token);
       toast.success("Account created successfully");
-      // TODO: route based on role or push to /login
+      if (data.user.role === "professor") {
+        router.push("/dashboard/professor");
+      } else {
+        router.push("/dashboard/student");
+      }
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Unable to register right now"
@@ -146,28 +161,18 @@ export default function RegisterPage() {
                 key={roleOption}
                 label={roleOption === "student" ? "Student" : "Professor"}
                 onClick={() =>
-                  (document.querySelector<HTMLInputElement>(
-                    `input[value='${roleOption}']`
-                  ))?.click()
+                  setValue("role", roleOption, {
+                    shouldValidate: true,
+                    shouldDirty: true
+                  })
                 }
                 clickable
-                variant="outlined"
+                variant={roleValue === roleOption ? "filled" : "outlined"}
+                color={roleValue === roleOption ? "primary" : "default"}
                 sx={{ borderRadius: 999, fontSize: 11 }}
               />
             ))}
           </Stack>
-          <input
-            type="radio"
-            value="student"
-            style={{ display: "none" }}
-            {...register("role")}
-          />
-          <input
-            type="radio"
-            value="professor"
-            style={{ display: "none" }}
-            {...register("role")}
-          />
           {errors.role && (
             <Typography variant="caption" sx={{ color: "#fb7185" }}>
               {errors.role.message}

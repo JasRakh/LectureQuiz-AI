@@ -54,7 +54,7 @@ export async function loginUser(params: {
   return { user, token };
 }
 
-function signToken(userId: string, role: "student" | "professor") {
+function signToken(userId: number, role: "student" | "professor") {
   return jwt.sign({ userId, role }, env.jwtSecret, {
     expiresIn: "7d"
   });
