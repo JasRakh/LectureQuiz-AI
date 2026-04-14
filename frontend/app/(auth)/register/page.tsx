@@ -25,8 +25,6 @@ const registerSchema = z.object({
 
 type RegisterValues = z.infer<typeof registerSchema>;
 
-const TOKEN_KEY = "lq_token";
-
 export default function RegisterPage() {
   const router = useRouter();
   const {
@@ -57,15 +55,18 @@ export default function RegisterPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.message || "Unable to register");
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.message || "Unable to register");
       }
 
       const data = (await res.json()) as {
         token: string;
-        user: { role: string };
+        user: { name: string; email: string; role: string };
       };
-      localStorage.setItem(TOKEN_KEY, data.token);
+      localStorage.setItem("lecturequiz_token", data.token);
+      localStorage.setItem("lecturequiz_user_name", data.user.name);
+      localStorage.setItem("lecturequiz_user_email", data.user.email);
+      localStorage.setItem("lecturequiz_user_role", data.user.role);
       toast.success("Account created successfully");
       if (data.user.role === "professor") {
         router.push("/dashboard/professor");

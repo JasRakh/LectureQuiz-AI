@@ -119,6 +119,7 @@ router.get("/", authenticate, async (req: AuthRequest, res) => {
 
     const lectures = await prisma.lecture.findMany({
       orderBy: { createdAt: "desc" },
+      include: { quizzes: { select: { id: true } } },
     });
     return res.json({ lectures });
   } catch (e) {
@@ -158,12 +159,6 @@ router.get("/:id", authenticate, async (req, res) => {
 
 router.post("/:id/transcribe", authenticate, async (req: AuthRequest, res) => {
   try {
-    if (req.user?.role !== "professor") {
-      return res
-        .status(403)
-        .json({ message: "Only professors can transcribe lectures" });
-    }
-
     const whisperBackend = env.whisperBackend;
     const hasOpenAI = Boolean(env.openaiApiKey.trim());
     if (whisperBackend === "openai" && !hasOpenAI) {
@@ -186,8 +181,8 @@ router.post("/:id/transcribe", authenticate, async (req: AuthRequest, res) => {
       return res.status(404).json({ message: "Lecture not found" });
     }
 
-    if (lecture.professorId !== req.user.userId) {
-      return res.status(403).json({ message: "Forbidden" });
+    if (lecture.transcript?.trim()) {
+      return res.json({ lecture, transcript: lecture.transcript });
     }
 
     const transcript = await transcribeVideoUrlToText(lecture.videoUrl);

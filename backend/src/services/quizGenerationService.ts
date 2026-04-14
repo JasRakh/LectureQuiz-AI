@@ -99,7 +99,9 @@ export async function generateQuizFromLecture(lectureId: number) {
     );
   }
 
-  const transcript = await transcribeVideoUrlToText(lecture.videoUrl);
+  const transcript = lecture.transcript?.trim()
+    ? lecture.transcript
+    : await transcribeVideoUrlToText(lecture.videoUrl);
 
   const { bulletPoints, questions } =
     await generateBulletPointsAndQuiz(transcript);
