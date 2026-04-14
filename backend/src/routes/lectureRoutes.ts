@@ -1,198 +1,294 @@
-import { randomUUID } from "crypto";
 import { Router } from "express";
-import fs from "fs/promises";
 import multer from "multer";
 import path from "path";
-import { z } from "zod";
+import fs from "fs/promises";
+import { randomUUID } from "crypto";
 import { env } from "../config/env";
-import { authenticate, requireRole, AuthRequest } from "../middleware/auth";
+import { authenticate, AuthRequest } from "../middleware/auth";
 import { prisma } from "../prisma/client";
-import { generateQuizFromLecture } from "../services/quizGenerationService";
+import {
+  generateBulletPointsOnlyForLecture,
+  generateQuizFromLecture,
+  transcribeVideoUrlToText,
+} from "../services/quizGenerationService";
 
-export const lectureRouter = Router();
+const router = Router();
 
-const createLectureSchema = z.object({
-  title: z.string().min(2),
-  videoUrl: z.string().url()
-});
-
-const uploadStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, path.join(process.cwd(), env.uploadDir));
+const uploadDir = path.resolve(env.uploadDir);
+const storage = multer.diskStorage({
+  destination: async (_req, _file, cb) => {
+    await fs.mkdir(uploadDir, { recursive: true });
+    cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || ".mp4";
+    const ext = path.extname(file.originalname) || ".mp4";
     cb(null, `${randomUUID()}${ext}`);
-  }
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 500 * 1024 * 1024 },
 });
 
-const uploadMp4 = multer({
-  storage: uploadStorage,
-  limits: { fileSize: 1024 * 1024 * 500 },
-  fileFilter: (_req, file, cb) => {
-    const name = file.originalname.toLowerCase();
-    if (name.endsWith(".mp4") || name.endsWith(".mov")) {
-      cb(null, true);
-      return;
-    }
-    cb(new Error("Upload an MP4 or MOV lecture video."));
-  }
-});
-
-function parseLectureId(param: string): number | null {
-  const id = Number(param);
-  return Number.isInteger(id) && id > 0 ? id : null;
+function parseLectureIdParam(param: string): number | null {
+  const n = Number.parseInt(param, 10);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return n;
 }
 
-lectureRouter.post(
-  "/",
-  authenticate,
-  requireRole("professor"),
-  async (req: AuthRequest, res) => {
-    try {
-      const data = createLectureSchema.parse(req.body);
-      const lecture = await prisma.lecture.create({
-        data: {
-          title: data.title,
-          videoUrl: data.videoUrl,
-          professorId: req.user!.userId
-        }
-      });
-      return res.status(201).json(lecture);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        return res
-          .status(400)
-          .json({ message: "Invalid payload", errors: err.errors });
-      }
-      return res.status(400).json({ message: (err as Error).message });
-    }
+function parseBulletPoints(raw: string | null | undefined): string[] | null {
+  if (!raw?.trim()) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) && parsed.every((x) => typeof x === "string")
+      ? (parsed as string[])
+      : null;
+  } catch {
+    return null;
   }
-);
+}
 
-lectureRouter.post(
+router.post(
   "/upload",
   authenticate,
-  requireRole("professor"),
-  (req: AuthRequest, res, next) => {
-    uploadMp4.single("video")(req, res, (err) => {
-      if (err) {
-        return res.status(400).json({ message: (err as Error).message });
-      }
-      return next();
-    });
-  },
+  upload.single("video"),
   async (req: AuthRequest, res) => {
     try {
-      const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
-      if (title.length < 2) {
-        if (req.file?.path) {
-          await fs.unlink(req.file.path).catch(() => {});
-        }
-        return res.status(400).json({ message: "Title must be at least 2 characters" });
-      }
-      if (!req.file) {
-        return res.status(400).json({ message: "Missing video file (field name: video)" });
+      if (req.user?.role !== "professor") {
+        return res
+          .status(403)
+          .json({ message: "Only professors can upload lectures" });
       }
 
-      const videoUrl = `${env.apiPublicUrl}/uploads/${req.file.filename}`;
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ message: "Missing video file (field name: video)" });
+      }
+
+      const title =
+        (req.body?.title as string | undefined)?.trim() || "Untitled lecture";
+      const relative = `/uploads/${req.file.filename}`;
+      const videoUrl = `${env.apiPublicUrl.replace(/\/$/, "")}${relative}`;
+
       const lecture = await prisma.lecture.create({
         data: {
           title,
           videoUrl,
-          professorId: req.user!.userId
-        }
+          professorId: req.user.userId,
+        },
       });
-      return res.status(201).json(lecture);
-    } catch (err) {
-      return res.status(400).json({ message: (err as Error).message });
+
+      return res.status(201).json({ lecture });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ message: "Failed to upload lecture" });
     }
-  }
+  },
 );
 
-lectureRouter.get("/", authenticate, async (req: AuthRequest, res) => {
+router.get("/ai-capabilities", (_req, res) => {
+  const whisperBackend = env.whisperBackend;
+  const hasOpenAI = Boolean(env.openaiApiKey.trim());
+  const hasAnthropic = Boolean(env.anthropicApiKey.trim());
+
+  const whisperAvailable =
+    whisperBackend === "local" || (whisperBackend === "openai" && hasOpenAI);
+
+  return res.json({
+    whisperBackend,
+    whisperAvailable,
+    openaiConfigured: hasOpenAI,
+    anthropicConfigured: hasAnthropic,
+    claudeModel: env.claudeModel,
+    canTranscribe: whisperAvailable,
+    canGenerateBullets: hasAnthropic,
+    canGenerateQuiz: hasAnthropic,
+  });
+});
+
+router.get("/", authenticate, async (req: AuthRequest, res) => {
   try {
-    const user = req.user!;
-    if (user.role === "professor") {
+    if (req.user?.role === "professor") {
       const lectures = await prisma.lecture.findMany({
-        where: { professorId: user.userId },
-        orderBy: { createdAt: "desc" }
+        where: { professorId: req.user.userId },
+        orderBy: { createdAt: "desc" },
       });
-      return res.json(lectures);
+      return res.json({ lectures });
     }
 
     const lectures = await prisma.lecture.findMany({
       orderBy: { createdAt: "desc" },
-      include: {
-        quizzes: { select: { id: true } }
-      }
     });
-    return res.json(lectures);
-  } catch (err) {
-    return res.status(500).json({ message: (err as Error).message });
+    return res.json({ lectures });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Failed to list lectures" });
   }
 });
 
-lectureRouter.get("/:id", authenticate, async (req: AuthRequest, res) => {
+router.get("/:id", authenticate, async (req, res) => {
   try {
-    const id = parseLectureId(req.params.id);
-    if (id === null) {
+    const lectureId = parseLectureIdParam(req.params.id);
+    if (lectureId === null) {
       return res.status(400).json({ message: "Invalid lecture id" });
     }
 
     const lecture = await prisma.lecture.findUnique({
-      where: { id },
-      include: { quizzes: { select: { id: true } } }
+      where: { id: lectureId },
     });
+
     if (!lecture) {
       return res.status(404).json({ message: "Lecture not found" });
     }
 
-    if (req.user!.role === "professor" && lecture.professorId !== req.user!.userId) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-
-    let bulletPoints: string[] | null = null;
-    if (lecture.bulletPoints) {
-      try {
-        bulletPoints = JSON.parse(lecture.bulletPoints) as string[];
-      } catch {
-        bulletPoints = null;
-      }
-    }
+    const bulletPoints = parseBulletPoints(lecture.bulletPoints);
 
     return res.json({
-      ...lecture,
-      bulletPoints
+      lecture: {
+        ...lecture,
+        bulletPoints,
+      },
     });
-  } catch (err) {
-    return res.status(500).json({ message: (err as Error).message });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Failed to load lecture" });
   }
 });
 
-lectureRouter.post(
-  "/:id/generate-quiz",
+router.post("/:id/transcribe", authenticate, async (req: AuthRequest, res) => {
+  try {
+    if (req.user?.role !== "professor") {
+      return res
+        .status(403)
+        .json({ message: "Only professors can transcribe lectures" });
+    }
+
+    const whisperBackend = env.whisperBackend;
+    const hasOpenAI = Boolean(env.openaiApiKey.trim());
+    if (whisperBackend === "openai" && !hasOpenAI) {
+      return res.status(503).json({
+        message:
+          "Whisper transcription is not configured. Set OPENAI_API_KEY (for whisper-1) or switch WHISPER_BACKEND=local.",
+      });
+    }
+
+    const lectureId = parseLectureIdParam(req.params.id);
+    if (lectureId === null) {
+      return res.status(400).json({ message: "Invalid lecture id" });
+    }
+
+    const lecture = await prisma.lecture.findUnique({
+      where: { id: lectureId },
+    });
+
+    if (!lecture) {
+      return res.status(404).json({ message: "Lecture not found" });
+    }
+
+    if (lecture.professorId !== req.user.userId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const transcript = await transcribeVideoUrlToText(lecture.videoUrl);
+
+    const updated = await prisma.lecture.update({
+      where: { id: lecture.id },
+      data: { transcript },
+    });
+
+    return res.json({ lecture: updated, transcript });
+  } catch (e) {
+    console.error(e);
+    const msg = e instanceof Error ? e.message : "Transcription failed";
+    return res.status(500).json({ message: msg });
+  }
+});
+
+router.post(
+  "/:id/generate-bullets",
   authenticate,
-  requireRole("professor"),
   async (req: AuthRequest, res) => {
     try {
-      const lectureId = parseLectureId(req.params.id);
+      if (req.user?.role !== "professor") {
+        return res
+          .status(403)
+          .json({ message: "Only professors can generate bullets" });
+      }
+
+      if (!env.anthropicApiKey.trim()) {
+        return res.status(503).json({
+          message:
+            "ANTHROPIC_API_KEY is required for summary bullets (Claude). Transcribe the lecture first.",
+        });
+      }
+
+      const lectureId = parseLectureIdParam(req.params.id);
       if (lectureId === null) {
         return res.status(400).json({ message: "Invalid lecture id" });
       }
 
-      const existing = await prisma.lecture.findUnique({ where: { id: lectureId } });
-      if (!existing) {
+      const lecture = await prisma.lecture.findUnique({
+        where: { id: lectureId },
+      });
+
+      if (!lecture) {
         return res.status(404).json({ message: "Lecture not found" });
       }
-      if (existing.professorId !== req.user!.userId) {
+
+      if (lecture.professorId !== req.user.userId) {
         return res.status(403).json({ message: "Forbidden" });
       }
 
-      const result = await generateQuizFromLecture(lectureId);
-      return res.status(201).json(result);
-    } catch (err) {
-      return res.status(400).json({ message: (err as Error).message });
+      const { bulletPoints } = await generateBulletPointsOnlyForLecture(
+        lecture.id,
+      );
+
+      return res.json({ bulletPoints });
+    } catch (e) {
+      console.error(e);
+      const msg = e instanceof Error ? e.message : "Failed to generate bullets";
+      return res.status(500).json({ message: msg });
     }
-  }
+  },
 );
+
+router.post(
+  "/:id/generate-quiz",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      if (req.user?.role !== "professor") {
+        return res
+          .status(403)
+          .json({ message: "Only professors can generate quizzes" });
+      }
+
+      const lectureId = parseLectureIdParam(req.params.id);
+      if (lectureId === null) {
+        return res.status(400).json({ message: "Invalid lecture id" });
+      }
+
+      const lecture = await prisma.lecture.findUnique({
+        where: { id: lectureId },
+      });
+
+      if (!lecture) {
+        return res.status(404).json({ message: "Lecture not found" });
+      }
+
+      if (lecture.professorId !== req.user.userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const result = await generateQuizFromLecture(lecture.id);
+      return res.json(result);
+    } catch (e) {
+      console.error(e);
+      const msg = e instanceof Error ? e.message : "Quiz generation failed";
+      return res.status(500).json({ message: msg });
+    }
+  },
+);
+
+export const lectureRouter = router;

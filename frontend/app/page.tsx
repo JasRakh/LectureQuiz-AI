@@ -1,3 +1,5 @@
+"use client";
+
 import { MainNav } from "../components/layout/main-nav";
 import { Button } from "../components/ui/button";
 import {
@@ -225,12 +227,12 @@ export default function LandingPage() {
               {
                 step: "02",
                 title: "Transcribe & understand",
-                body: "Whisper converts speech into text while NLP models map key concepts, definitions, and relationships.",
+                body: "Whisper (OpenAI API or local) turns speech into text; optional language hints keep technical terms accurate.",
               },
               {
                 step: "03",
                 title: "Generate adaptive quiz",
-                body: "GPT / T5 generate concept-anchored questions tuned to student proficiency and learning goals.",
+                body: "Claude reads the transcript to produce bullet summaries and concept-anchored multiple-choice questions.",
               },
             ].map((item, idx) => (
               <Grid key={item.step} size={{ xs: 12, md: 4 }}>

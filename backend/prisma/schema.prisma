@@ -20,12 +20,12 @@ model User {
 }
 
 model Lecture {
-  id          Int      @id @default(autoincrement())
-  title       String
-  videoUrl    String
-  transcript  String?  @db.Text
-  bulletPoints String? // JSON string[] — key ideas from the lecture
-  createdAt   DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  title         String
+  videoUrl      String
+  transcript    String?  @db.Text
+  bulletPoints  String?  @db.Text
+  createdAt     DateTime @default(now())
 
   professor   User     @relation("ProfessorLectures", fields: [professorId], references: [id])
   professorId Int
@@ -34,11 +34,11 @@ model Lecture {
 }
 
 model Quiz {
-  id             Int       @id @default(autoincrement())
-  lecture        Lecture   @relation(fields: [lectureId], references: [id])
-  lectureId      Int
+  id              Int      @id @default(autoincrement())
+  lecture         Lecture  @relation(fields: [lectureId], references: [id])
+  lectureId       Int
   generatedFromAI Boolean  @default(true)
-  createdAt      DateTime  @default(now())
+  createdAt       DateTime @default(now())
 
   questions   Question[]
   results     QuizResult[]
@@ -49,7 +49,7 @@ model Question {
   quiz          Quiz     @relation(fields: [quizId], references: [id])
   quizId        Int
   question      String
-  options       String   // JSON stringified array of options
+  options       String // JSON stringified array of options
   correctAnswer String
 }
 
@@ -67,4 +67,3 @@ enum Role {
   student
   professor
 }
-

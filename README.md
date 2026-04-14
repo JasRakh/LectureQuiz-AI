@@ -43,12 +43,14 @@ This repository is structured as a small monorepo with a `frontend` (Next.js 14 
    - Frontend (in `frontend`): `npm run dev`
    - Backend (in `backend`): `npm run dev`
 
-### AI Quiz Generation
+### AI pipeline (Whisper + Claude)
 
-The initial foundation includes clear hooks where you can integrate:
+- **Transcription**: OpenAI `whisper-1` when `WHISPER_BACKEND=openai` and `OPENAI_API_KEY` is set, or **local** OpenAI Whisper (`pip install openai-whisper`) when `WHISPER_BACKEND=local`. Audio is extracted with **FFmpeg** (`FFMPEG_PATH` on Windows if needed).
+- **Bullets + quiz JSON**: **Anthropic Claude** (`ANTHROPIC_API_KEY`, optional `CLAUDE_MODEL`) builds bullet summaries and multiple-choice questions from the transcript.
 
-- **Speech-to-Text (Whisper)** to transcribe lecture videos.
-- **NLP Question Generation (GPT / T5)** to generate quizzes from transcripts.
+**Backend `.env`** (see `backend/.env.example`): `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN`, `API_PUBLIC_URL`, `UPLOAD_DIR`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, Whisper/FFmpeg variables as needed.
 
-These integration points are documented in the backend quiz service layer and can later call your AI providers.
+**Frontend `.env`**: `NEXT_PUBLIC_API_URL` (e.g. `http://localhost:4000`).
+
+**Professor flow**: register/login as professor → dashboard → upload video → **Whisper only** (transcribe) → optional **Bullets only** (needs transcript + Claude) → **Full quiz** (transcribe + Claude + save quiz).
 

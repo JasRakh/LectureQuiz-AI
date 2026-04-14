@@ -5,45 +5,27 @@ import { prisma } from "../prisma/client";
 
 export const quizRouter = Router();
 
-function parseQuizId(param: string): number | null {
-  const id = Number(param);
-  return Number.isInteger(id) && id > 0 ? id : null;
+function parseQuizIdParam(param: string): number | null {
+  const n = Number.parseInt(param, 10);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return n;
 }
-
-const submitSchema = z.object({
-  answers: z.record(z.string(), z.string())
-});
 
 quizRouter.get(
   "/:id",
   authenticate,
   async (req: AuthRequest, res) => {
-    try {
-      const id = parseQuizId(req.params.id);
-      if (id === null) {
-        return res.status(400).json({ message: "Invalid quiz id" });
-      }
+    const quizId = parseQuizIdParam(req.params.id);
+    if (quizId === null) {
+      return res.status(400).json({ message: "Invalid quiz id" });
+    }
 
-      const quiz = await prisma.quiz.findUnique({
-        where: { id },
-        include: { questions: true }
-      });
-      if (!quiz) {
-        return res.status(404).json({ message: "Quiz not found" });
-      }
-
-      if (req.user!.role === "student") {
-        const sanitized = quiz.questions.map((q) => ({
-          id: q.id,
-          question: q.question,
-          options: q.options
-        }));
-        return res.json({ ...quiz, questions: sanitized });
-      }
-
-      return res.json(quiz);
-    } catch (err) {
-      return res.status(500).json({ message: (err as Error).message });
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: { questions: true }
+    });
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
     }
   }
 );
@@ -52,10 +34,23 @@ quizRouter.post(
   "/:id/submit",
   authenticate,
   async (req: AuthRequest, res) => {
-    try {
-      const quizId = parseQuizId(req.params.id);
-      if (quizId === null) {
-        return res.status(400).json({ message: "Invalid quiz id" });
+    const quizId = parseQuizIdParam(req.params.id);
+    if (quizId === null) {
+      return res.status(400).json({ message: "Invalid quiz id" });
+    }
+
+    const { score } = req.body as { score: number };
+
+    const quiz = await prisma.quiz.findUnique({ where: { id: quizId } });
+    if (!quiz) {
+      return res.status(404).json({ message: "Quiz not found" });
+    }
+
+    const result = await prisma.quizResult.create({
+      data: {
+        studentId: req.user!.userId,
+        quizId,
+        score
       }
 
       const body = submitSchema.safeParse(req.body);
