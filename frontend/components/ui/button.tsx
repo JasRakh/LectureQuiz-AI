@@ -6,11 +6,13 @@ export const Button = (props: ButtonProps) => {
   return (
     <ButtonMUI
       variant={props.variant ?? 'contained'}
+      disableElevation
       {...props}
       sx={{
-        borderRadius: 999,
+        borderRadius: 2,
         textTransform: 'none',
-        ...(props.sx || {}),
+        fontWeight: 500,
+        ...props.sx,
       }}
     />
   );

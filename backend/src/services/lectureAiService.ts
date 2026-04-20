@@ -130,6 +130,10 @@ Output only valid JSON. No markdown fences, no commentary, no extra keys.`;
 export async function generateBulletPointsOnlyFromTranscript(
   transcript: string,
 ): Promise<string[]> {
+  if (!env.anthropicApiKey.trim()) {
+    return getDemoBulletPoints(transcript);
+  }
+
   const anthropic = getAnthropic();
 
   const system = `You are an assistant for university lectures. Given a transcript, output STRICT JSON with only one key:
@@ -162,4 +166,180 @@ Output only valid JSON. No markdown fences, no commentary, no extra keys.`;
 
   const out = bulletsOnlySchema.parse(parsed);
   return out.bulletPoints;
+}
+
+const DEMO_BULLET_SETS: string[][] = [
+  [
+    "Введение в основные концепции и определения предмета",
+    "Исторический контекст и эволюция подходов в данной области",
+    "Ключевые теоремы и принципы, лежащие в основе дисциплины",
+    "Практическое применение теории в реальных задачах",
+    "Сравнение различных методологий и их преимуществ",
+    "Типичные ошибки и заблуждения при изучении темы",
+    "Связь с другими дисциплинами и междисциплинарные подходы",
+    "Современные тенденции и актуальные исследования",
+  ],
+  [
+    "Основные определения: переменные, функции и операторы",
+    "Структуры данных: массивы, списки и деревья",
+    "Алгоритмическая сложность: O(n), O(log n), O(n²)",
+    "Рекурсия и итерация: когда что использовать",
+    "Принципы проектирования: модульность и инкапсуляция",
+    "Тестирование и отладка: unit-тесты и интеграционные тесты",
+    "Паттерны проектирования: Observer, Singleton, Factory",
+    "Оптимизация производительности и профилирование кода",
+    "Работа с внешними API и обработка ошибок",
+  ],
+  [
+    "Линейные уравнения и системы: методы решения",
+    "Матрицы: операции, определитель и обратная матрица",
+    "Векторные пространства и линейная независимость",
+    "Собственные значения и собственные векторы",
+    "Ортогональность и проекции в евклидовом пространстве",
+    "Линейные преобразования и их матричное представление",
+    "Применение линейной алгебры в машинном обучении",
+    "Разложение матриц: SVD, LU, QR-разложения",
+  ],
+];
+
+const DEMO_QUIZ_SETS: {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}[][] = [
+  [
+    {
+      question: "Какой алгоритм сортировки имеет среднюю сложность O(n log n)?",
+      options: ["Bubble Sort", "Quick Sort", "Selection Sort", "Insertion Sort"],
+      correctAnswer: "Quick Sort",
+    },
+    {
+      question: "Что такое инкапсуляция в ООП?",
+      options: [
+        "Наследование свойств от родительского класса",
+        "Сокрытие внутренней реализации и предоставление интерфейса",
+        "Возможность объекта принимать разные формы",
+        "Создание нескольких экземпляров класса",
+      ],
+      correctAnswer:
+        "Сокрытие внутренней реализации и предоставление интерфейса",
+    },
+    {
+      question: "Какая структура данных работает по принципу FIFO?",
+      options: ["Стек", "Очередь", "Дерево", "Граф"],
+      correctAnswer: "Очередь",
+    },
+    {
+      question: "Что возвращает рекурсивная функция без базового случая?",
+      options: [
+        "Пустой массив",
+        "Null",
+        "Ошибку переполнения стека (Stack Overflow)",
+        "Бесконечный цикл",
+      ],
+      correctAnswer: "Ошибку переполнения стека (Stack Overflow)",
+    },
+    {
+      question: "Какой паттерн гарантирует создание только одного экземпляра класса?",
+      options: ["Observer", "Factory", "Singleton", "Strategy"],
+      correctAnswer: "Singleton",
+    },
+  ],
+  [
+    {
+      question: "Чему равен определитель единичной матрицы?",
+      options: ["0", "1", "-1", "Не определён"],
+      correctAnswer: "1",
+    },
+    {
+      question: "Какое свойство НЕ является свойством векторного пространства?",
+      options: [
+        "Замкнутость относительно сложения",
+        "Существование нулевого вектора",
+        "Коммутативность умножения векторов",
+        "Замкнутость относительно умножения на скаляр",
+      ],
+      correctAnswer: "Коммутативность умножения векторов",
+    },
+    {
+      question: "Что показывают собственные значения матрицы?",
+      options: [
+        "Размерность матрицы",
+        "Коэффициенты растяжения при линейном преобразовании",
+        "Количество строк в матрице",
+        "Сумму элементов главной диагонали",
+      ],
+      correctAnswer:
+        "Коэффициенты растяжения при линейном преобразовании",
+    },
+    {
+      question: "Какой метод используется для решения системы линейных уравнений?",
+      options: [
+        "Метод Ньютона",
+        "Метод Гаусса",
+        "Метод Монте-Карло",
+        "Метод градиентного спуска",
+      ],
+      correctAnswer: "Метод Гаусса",
+    },
+    {
+      question: "Два вектора ортогональны, если их скалярное произведение равно…",
+      options: ["1", "-1", "0", "Бесконечности"],
+      correctAnswer: "0",
+    },
+  ],
+  [
+    {
+      question: "Какой протокол используется для безопасной передачи данных в вебе?",
+      options: ["HTTP", "FTP", "HTTPS", "SMTP"],
+      correctAnswer: "HTTPS",
+    },
+    {
+      question: "Что такое REST API?",
+      options: [
+        "Библиотека для работы с базами данных",
+        "Архитектурный стиль для создания веб-сервисов",
+        "Язык программирования",
+        "Система управления версиями",
+      ],
+      correctAnswer: "Архитектурный стиль для создания веб-сервисов",
+    },
+    {
+      question: "Какой HTTP-метод используется для создания нового ресурса?",
+      options: ["GET", "POST", "DELETE", "PATCH"],
+      correctAnswer: "POST",
+    },
+    {
+      question: "Что такое JWT?",
+      options: [
+        "JavaScript Web Template",
+        "JSON Web Token",
+        "Java Web Toolkit",
+        "JavaScript Worker Thread",
+      ],
+      correctAnswer: "JSON Web Token",
+    },
+    {
+      question: "Какой статус-код означает 'Not Found'?",
+      options: ["200", "301", "404", "500"],
+      correctAnswer: "404",
+    },
+  ],
+];
+
+function getDemoBulletPoints(_transcript: string): string[] {
+  const idx = Math.floor(Math.random() * DEMO_BULLET_SETS.length);
+  return DEMO_BULLET_SETS[idx];
+}
+
+export function getDemoBulletPointsAndQuiz(_transcript: string): {
+  bulletPoints: string[];
+  questions: { question: string; options: string[]; correctAnswer: string }[];
+} {
+  const bIdx = Math.floor(Math.random() * DEMO_BULLET_SETS.length);
+  const qIdx = Math.floor(Math.random() * DEMO_QUIZ_SETS.length);
+  return {
+    bulletPoints: DEMO_BULLET_SETS[bIdx],
+    questions: DEMO_QUIZ_SETS[qIdx],
+  };
 }

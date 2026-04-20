@@ -1,31 +1,33 @@
-"use client";
+'use client';
 
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { MainNav } from '../../components/layout/main-nav';
+import Container from '@mui/material/Container';
 
 export default function ProfilePage() {
   const router = useRouter();
   const [name, setName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-  const [role, setRole] = useState<"student" | "professor" | null>(null);
+  const [role, setRole] = useState<'student' | 'professor' | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = window.localStorage.getItem("lecturequiz_token");
+    if (typeof window === 'undefined') return;
+    const token = window.localStorage.getItem('lecturequiz_token');
     if (!token) {
-      router.replace("/login");
+      router.replace('/login');
       return;
     }
-    setName(window.localStorage.getItem("lecturequiz_user_name"));
-    setEmail(window.localStorage.getItem("lecturequiz_user_email"));
-    const storedRole = window.localStorage.getItem("lecturequiz_user_role");
-    if (storedRole === "student" || storedRole === "professor") {
+    setName(window.localStorage.getItem('lecturequiz_user_name'));
+    setEmail(window.localStorage.getItem('lecturequiz_user_email'));
+    const storedRole = window.localStorage.getItem('lecturequiz_user_role');
+    if (storedRole === 'student' || storedRole === 'professor') {
       setRole(storedRole);
     }
     setLoading(false);
@@ -35,103 +37,86 @@ export default function ProfilePage() {
     return (
       <Box
         sx={{
-          minHeight: "100vh",
-          background:
-            "radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        <CircularProgress size={32} sx={{ color: "#818cf8" }} />
+        <CircularProgress size={24} sx={{ color: 'text.secondary' }} />
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background:
-          "radial-gradient(circle at top,rgba(37,99,235,0.35),#020617 55%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        px: 2,
-      }}
-    >
-      <Paper
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      <MainNav />
+      <Container
+        maxWidth='sm'
         sx={{
-          maxWidth: 480,
-          width: "100%",
-          p: 3,
-          borderRadius: 3,
-          bgcolor: "rgba(15,23,42,0.96)",
-          border: "1px solid rgba(148,163,184,0.25)",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: 'calc(100vh - 64px)',
         }}
       >
-        <Typography variant="h6" sx={{ color: "#e5e7eb", fontWeight: 600 }}>
-          Profile
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ mt: 0.5, fontSize: 12, color: "rgba(148,163,184,0.9)" }}
+        <Paper
+          sx={{
+            maxWidth: 440,
+            width: '100%',
+            p: 4,
+            border: 1,
+            borderColor: 'divider',
+          }}
         >
-          Basic information about your LectureQuiz AI account.
-        </Typography>
+          <Typography variant='h5' sx={{ color: 'text.primary' }}>
+            Profile
+          </Typography>
+          <Typography variant='body2' sx={{ mt: 0.5, color: 'text.secondary' }}>
+            Your LectureQuiz AI account info.
+          </Typography>
 
-        <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 1.5 }}>
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{ color: "#cbd5f5", mb: 0.5, display: "block" }}
-            >
-              Name
-            </Typography>
-            <Typography variant="body2" sx={{ color: "#e5e7eb" }}>
-              {name ?? "—"}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{ color: "#cbd5f5", mb: 0.5, display: "block" }}
-            >
-              Email
-            </Typography>
-            <Typography variant="body2" sx={{ color: "#e5e7eb" }}>
-              {email ?? "—"}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{ color: "#cbd5f5", mb: 0.5, display: "block" }}
-            >
-              Role
-            </Typography>
-            {role ? (
-              <Chip
-                label={role === "student" ? "Student" : "Professor"}
-                size="small"
-                sx={{
-                  borderRadius: 999,
-                  fontSize: 11,
-                  bgcolor:
-                    role === "student"
-                      ? "rgba(59,130,246,0.15)"
-                      : "rgba(139,92,246,0.15)",
-                  color: "#e5e7eb",
-                }}
-              />
-            ) : (
-              <Typography variant="body2" sx={{ color: "#e5e7eb" }}>
-                —
+          <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box>
+              <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                Name
               </Typography>
-            )}
+              <Typography variant='body1' sx={{ color: 'text.primary', fontWeight: 500 }}>
+                {name ?? '—'}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                Email
+              </Typography>
+              <Typography variant='body1' sx={{ color: 'text.primary', fontWeight: 500 }}>
+                {email ?? '—'}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant='body2' sx={{ color: 'text.secondary', mb: 0.5 }}>
+                Role
+              </Typography>
+              {role ? (
+                <Chip
+                  label={role === 'student' ? 'Student' : 'Professor'}
+                  size='small'
+                  sx={{
+                    fontWeight: 600,
+                    bgcolor: 'text.primary',
+                    color: 'background.default',
+                  }}
+                />
+              ) : (
+                <Typography variant='body1' sx={{ color: 'text.primary' }}>
+                  —
+                </Typography>
+              )}
+            </Box>
           </Box>
-        </Box>
-      </Paper>
+        </Paper>
+      </Container>
     </Box>
   );
 }

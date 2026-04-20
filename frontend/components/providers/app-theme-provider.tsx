@@ -3,15 +3,25 @@
 import { ReactNode } from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { theme } from '../../lib/theme';
+import { lightTheme, darkTheme } from '../../lib/theme';
+import { ThemeModeProvider, useThemeMode } from '../../lib/theme-context';
 import { Toaster } from '../ui/toaster';
 
-export function AppThemeProvider({ children }: { children: ReactNode }) {
+function InnerProvider({ children }: { children: ReactNode }) {
+  const { mode } = useThemeMode();
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={mode === 'dark' ? darkTheme : lightTheme}>
       <CssBaseline />
       {children}
       <Toaster />
     </ThemeProvider>
+  );
+}
+
+export function AppThemeProvider({ children }: { children: ReactNode }) {
+  return (
+    <ThemeModeProvider>
+      <InnerProvider>{children}</InnerProvider>
+    </ThemeModeProvider>
   );
 }

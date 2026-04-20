@@ -1,46 +1,48 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import Avatar from "@mui/material/Avatar";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Divider from "@mui/material/Divider";
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
+import { Sun, Moon } from 'lucide-react';
+import { useThemeMode } from '../../lib/theme-context';
 
 const links = [
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#features", label: "Features" },
-  { href: "#benefits", label: "Benefits" },
-  { href: "#demo", label: "Demo" },
+  { href: '#how-it-works', label: 'How it works' },
+  { href: '#features', label: 'Features' },
+  { href: '#benefits', label: 'Benefits' },
 ];
 
 export const MainNav = () => {
-  const pathname = usePathname() ?? "/";
+  const pathname = usePathname() ?? '/';
   const router = useRouter();
+  const { mode, toggleMode } = useThemeMode();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState<"student" | "professor" | null>(null);
+  const [role, setRole] = useState<'student' | 'professor' | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
-  const isAuthPage =
-    pathname.startsWith("/login") || pathname.startsWith("/register");
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
+  const isDashboardPage = pathname.startsWith('/dashboard');
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = window.localStorage.getItem("lecturequiz_token");
-    const storedRole = window.localStorage.getItem("lecturequiz_user_role");
-    const storedName = window.localStorage.getItem("lecturequiz_user_name");
+    if (typeof window === 'undefined') return;
+    const token = window.localStorage.getItem('lecturequiz_token');
+    const storedRole = window.localStorage.getItem('lecturequiz_user_role');
+    const storedName = window.localStorage.getItem('lecturequiz_user_name');
     setIsLoggedIn(!!token);
-    if (storedRole === "student" || storedRole === "professor") {
+    if (storedRole === 'student' || storedRole === 'professor') {
       setRole(storedRole);
     }
     if (storedName) {
@@ -50,115 +52,73 @@ export const MainNav = () => {
   }, [pathname]);
 
   const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("lecturequiz_token");
-      window.localStorage.removeItem("lecturequiz_user_name");
-      window.localStorage.removeItem("lecturequiz_user_email");
-      window.localStorage.removeItem("lecturequiz_user_role");
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('lecturequiz_token');
+      window.localStorage.removeItem('lecturequiz_user_name');
+      window.localStorage.removeItem('lecturequiz_user_email');
+      window.localStorage.removeItem('lecturequiz_user_role');
     }
     setIsLoggedIn(false);
     setRole(null);
     setName(null);
     setAnchorEl(null);
-    router.push("/login");
-  };
-
-  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
+    router.push('/login');
   };
 
   return (
     <AppBar
-      position="sticky"
-      elevation={0}
+      position='sticky'
       sx={{
-        bgcolor: "rgba(15,23,42,0.9)",
-        backdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(148,163,184,0.25)",
+        bgcolor: 'background.default',
+        borderBottom: 1,
+        borderColor: 'divider',
       }}
     >
       <Toolbar
         sx={{
-          maxWidth: 1200,
-          mx: "auto",
+          maxWidth: 1100,
+          width: '100%',
+          mx: 'auto',
           px: { xs: 2, md: 3 },
-          py: 1.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
+          py: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 2,
         }}
       >
         <Box
           component={Link}
-          href="/"
+          href='/'
           sx={{
-            display: "flex",
-            alignItems: "center",
+            display: 'flex',
+            alignItems: 'center',
             gap: 1,
-            textDecoration: "none",
+            textDecoration: 'none',
             flexShrink: 0,
           }}
         >
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: 2,
-              background: "linear-gradient(135deg,#4f46e5,#0ea5e9,#22c55e)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 18px 40px rgba(79,70,229,0.55)",
-            }}
-          >
-            <Typography
-              variant="caption"
-              fontWeight={700}
-              sx={{ color: "#020617" }}
-            >
-              LQ
-            </Typography>
-          </Box>
           <Typography
-            variant="body2"
-            sx={{
-              display: { xs: "none", sm: "inline" },
-              color: "rgba(226,232,240,0.95)",
-              fontWeight: 500,
-            }}
+            variant='body1'
+            sx={{ color: 'text.primary', fontWeight: 700, letterSpacing: '-0.02em' }}
           >
-            LectureQuiz AI
+            LectureQuiz
           </Typography>
         </Box>
 
-        {!isAuthPage && (
-          <Box
-            component="nav"
-            sx={{
-              display: { xs: "none", md: "flex" },
-              gap: 3,
-              ml: 4,
-            }}
-          >
+        {!isAuthPage && !isDashboardPage && (
+          <Box component='nav' sx={{ display: { xs: 'none', md: 'flex' }, gap: 1 }}>
             {links.map((link) => (
               <Button
                 key={link.href}
-                component="a"
+                component='a'
                 href={link.href}
-                size="small"
+                size='small'
                 sx={{
-                  color: "rgba(148,163,184,0.9)",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  textTransform: "none",
-                  "&:hover": {
-                    color: "#e5e7eb",
-                    backgroundColor: "transparent",
-                  },
+                  color: 'text.secondary',
+                  fontSize: 13,
+                  fontWeight: 400,
+                  '&:hover': { color: 'text.primary', bgcolor: 'transparent' },
                 }}
               >
                 {link.label}
@@ -167,116 +127,96 @@ export const MainNav = () => {
           </Box>
         )}
 
-        {/* flexible spacer so logo/text don't collide with auth buttons */}
         <Box sx={{ flexGrow: 1 }} />
 
-        <Box
-          sx={{
-            display: "flex",
-            gap: 1.5,
-            flexShrink: 0,
-            ml: isAuthPage ? 4 : 0,
-          }}
-        >
-          {/* Avoid flicker between logged-out and logged-in buttons on first paint */}
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexShrink: 0 }}>
+          <IconButton size='small' onClick={toggleMode} sx={{ color: 'text.secondary' }}>
+            {mode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </IconButton>
+
           {!hydrated ? null : isLoggedIn ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <IconButton
-                size="small"
-                onClick={handleAvatarClick}
-                sx={{ p: 0 }}
-              >
+            <>
+              <IconButton size='small' onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ p: 0 }}>
                 <Avatar
                   sx={{
-                    width: 32,
-                    height: 32,
-                    bgcolor: "#4f46e5",
-                    fontSize: 14,
+                    width: 30,
+                    height: 30,
+                    bgcolor: 'text.primary',
+                    color: 'background.default',
+                    fontSize: 13,
+                    fontWeight: 600,
                   }}
                 >
-                  {name ? name.charAt(0).toUpperCase() : "U"}
+                  {name ? name.charAt(0).toUpperCase() : 'U'}
                 </Avatar>
               </IconButton>
               <Menu
                 anchorEl={anchorEl}
                 open={menuOpen}
-                onClose={handleMenuClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                transformOrigin={{ vertical: "top", horizontal: "right" }}
+                onClose={() => setAnchorEl(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{
+                  paper: {
+                    sx: { mt: 1, minWidth: 180, border: 1, borderColor: 'divider' },
+                  },
+                }}
               >
                 <Box sx={{ px: 2, py: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                    {name ?? "User"}
+                  <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                    {name ?? 'User'}
                   </Typography>
                   {role && (
-                    <Typography variant="caption" sx={{ color: "#6b7280" }}>
-                      {role === "student" ? "Student" : "Professor"}
+                    <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                      {role === 'student' ? 'Student' : 'Professor'}
                     </Typography>
                   )}
                 </Box>
                 <Divider />
                 <MenuItem
                   onClick={() => {
-                    handleMenuClose();
-                    if (role === "professor") {
-                      router.push("/dashboard/professor");
-                    } else {
-                      router.push("/dashboard/student");
-                    }
+                    setAnchorEl(null);
+                    router.push(
+                      role === 'professor' ? '/dashboard/professor' : '/dashboard/student'
+                    );
                   }}
                 >
                   Dashboard
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
-                    handleMenuClose();
-                    router.push("/profile");
+                    setAnchorEl(null);
+                    router.push('/profile');
                   }}
                 >
                   Profile
                 </MenuItem>
                 <Divider />
-                <MenuItem
-                  onClick={() => {
-                    handleLogout();
-                  }}
-                >
-                  Log out
-                </MenuItem>
+                <MenuItem onClick={handleLogout}>Log out</MenuItem>
               </Menu>
-            </Box>
+            </>
           ) : (
             <Box
               sx={{
-                display: { xs: isAuthPage ? "none" : "flex", sm: "flex" },
+                display: { xs: isAuthPage ? 'none' : 'flex', sm: 'flex' },
                 gap: 1,
               }}
             >
               <Button
                 component={Link}
-                href="/login"
-                variant="outlined"
-                size="small"
-                sx={{
-                  borderRadius: 999,
-                  fontSize: 12,
-                  borderColor: "rgba(148,163,184,0.4)",
-                  color: "#e5e7eb",
-                }}
+                href='/login'
+                variant='text'
+                size='small'
+                sx={{ color: 'text.secondary', fontSize: 13 }}
               >
                 Log in
               </Button>
               <Button
                 component={Link}
-                href="/register"
-                variant="contained"
-                size="small"
-                sx={{
-                  borderRadius: 999,
-                  fontSize: 12,
-                  px: 2.5,
-                  background: "linear-gradient(135deg,#4f46e5,#0ea5e9,#22c55e)",
-                }}
+                href='/register'
+                variant='contained'
+                size='small'
+                sx={{ fontSize: 13, px: 2 }}
               >
                 Get started
               </Button>

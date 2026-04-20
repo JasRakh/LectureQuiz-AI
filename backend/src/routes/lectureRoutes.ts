@@ -118,10 +118,11 @@ router.get("/ai-capabilities", (_req, res) => {
     whisperAvailable,
     openaiConfigured: hasOpenAI,
     anthropicConfigured: hasAnthropic,
-    claudeModel: env.claudeModel,
+    claudeModel: hasAnthropic ? env.claudeModel : "demo (hardcoded)",
     canTranscribe: whisperAvailable,
-    canGenerateBullets: hasAnthropic,
-    canGenerateQuiz: hasAnthropic,
+    canGenerateBullets: true,
+    canGenerateQuiz: true,
+    demoMode: !hasAnthropic,
   });
 });
 
@@ -272,13 +273,6 @@ router.post(
         return res
           .status(403)
           .json({ message: "Only professors can generate bullets" });
-      }
-
-      if (!env.anthropicApiKey.trim()) {
-        return res.status(503).json({
-          message:
-            "ANTHROPIC_API_KEY is required for summary bullets (Claude). Transcribe the lecture first.",
-        });
       }
 
       const lectureId = parseLectureIdParam(req.params.id);

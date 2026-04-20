@@ -27,10 +27,7 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: '', password: '' },
   });
 
   const onSubmit = async (values: LoginValues) => {
@@ -60,11 +57,7 @@ export default function LoginPage() {
       }
 
       toast.success('Logged in successfully');
-      if (data.user.role === 'professor') {
-        router.push('/dashboard/professor');
-      } else {
-        router.push('/dashboard/student');
-      }
+      router.push(data.user.role === 'professor' ? '/dashboard/professor' : '/dashboard/student');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Unable to login right now');
     }
@@ -72,22 +65,20 @@ export default function LoginPage() {
 
   return (
     <Paper
-      elevation={8}
       sx={{
         width: '100%',
-        maxWidth: 420,
-        px: 3,
-        py: 3,
-        borderRadius: 3,
-        bgcolor: 'rgba(15,23,42,0.96)',
-        border: '1px solid rgba(148,163,184,0.25)',
+        maxWidth: 400,
+        p: 4,
+        border: 1,
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
       }}
     >
-      <Typography variant='h6' sx={{ color: '#e5e7eb', fontWeight: 600 }}>
+      <Typography variant='h5' sx={{ color: 'text.primary' }}>
         Welcome back
       </Typography>
-      <Typography variant='body2' sx={{ mt: 0.5, fontSize: 12, color: 'rgba(148,163,184,0.9)' }}>
-        Log in to access your LectureQuiz AI dashboard.
+      <Typography variant='body2' sx={{ mt: 0.5, color: 'text.secondary' }}>
+        Log in to your account.
       </Typography>
 
       <Box
@@ -96,24 +87,24 @@ export default function LoginPage() {
         sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}
       >
         <Box>
-          <Typography variant='caption' sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', mb: 0.5, fontWeight: 500 }}>
             Email
           </Typography>
           <Input type='email' placeholder='you@university.edu' {...register('email')} />
           {errors.email && (
-            <Typography variant='caption' sx={{ color: '#fb7185' }}>
+            <Typography variant='caption' sx={{ color: 'error.main', mt: 0.5 }}>
               {errors.email.message}
             </Typography>
           )}
         </Box>
 
         <Box>
-          <Typography variant='caption' sx={{ color: '#cbd5f5', mb: 0.5, display: 'block' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary', mb: 0.5, fontWeight: 500 }}>
             Password
           </Typography>
           <Input type='password' placeholder='••••••••' {...register('password')} />
           {errors.password && (
-            <Typography variant='caption' sx={{ color: '#fb7185' }}>
+            <Typography variant='caption' sx={{ color: 'error.main', mt: 0.5 }}>
               {errors.password.message}
             </Typography>
           )}
@@ -125,16 +116,11 @@ export default function LoginPage() {
       </Box>
 
       <Typography
-        variant='caption'
-        sx={{
-          mt: 2.5,
-          display: 'block',
-          textAlign: 'center',
-          color: '#9ca3af',
-        }}
+        variant='body2'
+        sx={{ mt: 3, display: 'block', textAlign: 'center', color: 'text.secondary' }}
       >
         Don&apos;t have an account?{' '}
-        <Link href='/register' style={{ color: '#a5b4fc', textDecoration: 'none' }}>
+        <Link href='/register' style={{ color: 'inherit', fontWeight: 600 }}>
           Create one
         </Link>
       </Typography>

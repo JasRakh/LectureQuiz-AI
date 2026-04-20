@@ -1,624 +1,613 @@
-"use client";
+'use client';
 
-import { MainNav } from "../components/layout/main-nav";
-import { Button } from "../components/ui/button";
+import { useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { MainNav } from '../components/layout/main-nav';
+import { Button } from '../components/ui/button';
 import {
   ArrowRight,
-  PlayCircle,
-  Sparkles,
-  Video,
-  Workflow,
-} from "lucide-react";
-import { MotionHero } from "../components/landing/motion-hero";
-import Link from "next/link";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid2";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
+  Upload,
+  AudioLines,
+  Brain,
+  FileQuestion,
+  CheckCircle2,
+  BarChart3,
+  Shield,
+  Zap,
+  Users,
+  BookOpen,
+  GraduationCap,
+  Target,
+} from 'lucide-react';
+import { MotionHero } from '../components/landing/motion-hero';
+import { PipelineDemo } from '../components/landing/pipeline-demo';
+import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid2';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
+
+function AnimatedSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.25, 0.1, 0.25, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function AnimatedCard({ children, index }: { children: React.ReactNode; index: number }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: '-40px' });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 24 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+      style={{ height: '100%' }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+const pipelineSteps = [
+  {
+    icon: Upload,
+    num: '01',
+    title: 'Upload lecture video',
+    body: 'Upload MP4 from your LMS, Zoom recording, or local files. Supports lectures of any length.',
+    detail: 'Drag & drop or URL import',
+  },
+  {
+    icon: AudioLines,
+    num: '02',
+    title: 'AI transcription',
+    body: 'OpenAI Whisper converts speech to text with high accuracy, even for technical terminology.',
+    detail: 'Powered by Whisper large-v3',
+  },
+  {
+    icon: Brain,
+    num: '03',
+    title: 'Concept extraction',
+    body: 'Claude AI reads the transcript, identifies core concepts, and generates structured bullet-point summaries.',
+    detail: 'Claude 3.5 Sonnet / GPT-4',
+  },
+  {
+    icon: FileQuestion,
+    num: '04',
+    title: 'Quiz generation',
+    body: 'AI produces concept-anchored multiple-choice questions with difficulty curves tailored to each student.',
+    detail: 'Adaptive difficulty engine',
+  },
+];
+
+const features = [
+  {
+    icon: Target,
+    title: 'Concept-aware questions',
+    body: 'Every question is anchored to a specific learning outcome extracted from the lecture.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Difficulty curves',
+    body: 'Quizzes start easy and ramp up based on prior performance data.',
+  },
+  {
+    icon: Shield,
+    title: 'Privacy-first',
+    body: 'Student data stays encrypted and under institutional control.',
+  },
+  {
+    icon: Zap,
+    title: 'Real-time processing',
+    body: 'Go from a 60-minute lecture to a ready quiz in under 5 minutes.',
+  },
+  {
+    icon: BookOpen,
+    title: 'LMS integration',
+    body: 'Export quizzes to Canvas, Moodle, or share direct links.',
+  },
+  {
+    icon: Users,
+    title: 'Multi-role support',
+    body: 'Separate dashboards for professors (manage) and students (learn).',
+  },
+];
+
+const stats = [
+  { value: '60 min', label: 'lecture processed' },
+  { value: '< 5 min', label: 'to generate quiz' },
+  { value: '95%+', label: 'transcription accuracy' },
+  { value: '∞', label: 'adaptive variations' },
+];
 
 export default function LandingPage() {
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background:
-          "radial-gradient(circle at top,rgba(37,99,235,0.4),#020617 55%)",
-      }}
-    >
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <MainNav />
 
-      <Container
-        maxWidth="lg"
-        sx={{ pt: 6, pb: 8, display: "flex", flexDirection: "column", gap: 8 }}
-      >
-        <Grid container spacing={4} alignItems="center">
+      <Container maxWidth='lg' sx={{ pt: { xs: 6, md: 10 }, pb: 10 }}>
+        {/* ─── HERO ─── */}
+        <Grid
+          container
+          spacing={{ xs: 4, md: 6 }}
+          alignItems='center'
+          sx={{ mb: { xs: 8, md: 14 } }}
+        >
           <Grid size={{ xs: 12, md: 7 }}>
             <MotionHero />
-          </Grid>
-          <Grid size={{ xs: 12, md: 5 }}>
-            <Paper
-              sx={{
-                position: "relative",
-                p: 3,
-                borderRadius: 3,
-                bgcolor: "rgba(15,23,42,0.96)",
-                border: "1px solid rgba(148,163,184,0.3)",
-              }}
-              elevation={10}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.65, duration: 0.5 }}
             >
-              <Typography
-                variant="caption"
-                sx={{
-                  textTransform: "uppercase",
-                  letterSpacing: ".2em",
-                  color: "#a5b4fc",
-                }}
-              >
-                LIVE PREVIEW
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ mt: 1, fontSize: 12, color: "#9ca3af" }}
-              >
-                Watch LectureQuiz AI turn a 60-minute lecture into an adaptive
-                quiz in seconds.
-              </Typography>
-
-              <Box
-                sx={{
-                  mt: 3,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 1.2,
-                  fontSize: 12,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    borderRadius: 999,
-                    bgcolor: "#020617",
-                    px: 1.5,
-                    py: 1,
-                  }}
-                >
-                  <Video className="h-4 w-4" color="#38bdf8" />
-                  <Typography variant="caption" sx={{ color: "#e5e7eb" }}>
-                    Upload lecture video
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      ml: "auto",
-                      fontSize: 10,
-                      color: "#6b7280",
-                      letterSpacing: ".2em",
-                    }}
-                  >
-                    STEP 01
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    borderRadius: 999,
-                    bgcolor: "#020617",
-                    px: 1.5,
-                    py: 1,
-                  }}
-                >
-                  <Workflow className="h-4 w-4" color="#22c55e" />
-                  <Typography variant="caption" sx={{ color: "#e5e7eb" }}>
-                    AI analyses concepts & topics
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      ml: "auto",
-                      fontSize: 10,
-                      color: "#6b7280",
-                      letterSpacing: ".2em",
-                    }}
-                  >
-                    STEP 02
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    borderRadius: 999,
-                    bgcolor: "#020617",
-                    px: 1.5,
-                    py: 1,
-                  }}
-                >
-                  <Sparkles className="h-4 w-4" color="#a855f7" />
-                  <Typography variant="caption" sx={{ color: "#e5e7eb" }}>
-                    Personalised quiz for every student
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      ml: "auto",
-                      fontSize: 10,
-                      color: "#6b7280",
-                      letterSpacing: ".2em",
-                    }}
-                  >
-                    STEP 03
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box
-                sx={{
-                  mt: 3,
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  gap: 1.5,
-                }}
-              >
-                <Button
-                  component="a"
-                  href="/register"
-                  size="large"
-                  sx={{ flex: 1 }}
-                >
+              <Box sx={{ display: 'flex', gap: 1.5, mt: 4 }}>
+                <Button component={Link} href='/register' size='large'>
                   Get started free
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight size={16} style={{ marginLeft: 6 }} />
                 </Button>
-                <Button
-                  component="a"
-                  href="#demo"
-                  variant="outlined"
-                  size="large"
-                  sx={{ flex: 1 }}
-                >
-                  <PlayCircle className="mr-2 h-5 w-5" color="#38bdf8" />
-                  Watch interactive demo
+                <Button component='a' href='#pipeline' variant='outlined' size='large'>
+                  See how it works
                 </Button>
               </Box>
-            </Paper>
+            </motion.div>
+          </Grid>
+
+          {/* Hero right — animated architecture preview */}
+          <Grid size={{ xs: 12, md: 5 }}>
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <Paper
+                sx={{
+                  p: 3,
+                  border: 1,
+                  borderColor: 'divider',
+                  bgcolor: 'background.paper',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <Typography
+                  variant='overline'
+                  sx={{ color: 'text.secondary', letterSpacing: 2, fontSize: 10 }}
+                >
+                  System Architecture
+                </Typography>
+
+                <Box sx={{ mt: 2.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {[
+                    { label: 'Frontend', tech: 'Next.js + React + MUI', color: '#3b82f6' },
+                    { label: 'Backend', tech: 'Node.js + Express + Prisma', color: '#10b981' },
+                    { label: 'AI Layer', tech: 'Whisper ASR + Claude LLM', color: '#8b5cf6' },
+                    { label: 'Database', tech: 'PostgreSQL + Prisma ORM', color: '#f59e0b' },
+                  ].map((layer, i) => (
+                    <motion.div
+                      key={layer.label}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + i * 0.12, duration: 0.4 }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          px: 2,
+                          py: 1.5,
+                          borderRadius: 2,
+                          border: '1px solid',
+                          borderColor: 'divider',
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            bgcolor: layer.color,
+                            flexShrink: 0,
+                            boxShadow: `0 0 8px ${layer.color}40`,
+                          }}
+                        />
+                        <Box>
+                          <Typography
+                            variant='body2'
+                            component='div'
+                            sx={{ fontWeight: 600, fontSize: 13, lineHeight: 1.3 }}
+                          >
+                            {layer.label}
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            component='div'
+                            sx={(theme) => ({
+                              fontSize: 11,
+                              lineHeight: 1.3,
+                              color: theme.palette.text.secondary,
+                            })}
+                          >
+                            {layer.tech}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </motion.div>
+                  ))}
+                </Box>
+              </Paper>
+            </motion.div>
           </Grid>
         </Grid>
 
-        {/* HOW IT WORKS */}
-        <Box id="how-it-works" sx={{ mt: 8 }}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-            <Box>
-              <Typography
-                variant="caption"
-                sx={{
-                  letterSpacing: ".2em",
-                  textTransform: "uppercase",
-                  color: "#7dd3fc",
-                }}
-              >
-                HOW IT WORKS
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{
-                  mt: 1,
-                  color: "#e5e7eb",
-                  fontWeight: 600,
-                  fontSize: { xs: 18, md: 22 },
-                }}
-              >
-                From lecture video to adaptive quiz in three steps.
-              </Typography>
-            </Box>
-          </Box>
-
-          <Grid container spacing={2.5}>
-            {[
-              {
-                step: "01",
-                title: "Ingest lecture video",
-                body: "Upload from your LMS, Zoom, or local files. We normalise audio and prepare it for transcription.",
-              },
-              {
-                step: "02",
-                title: "Transcribe & understand",
-                body: "Whisper (OpenAI API or local) turns speech into text; optional language hints keep technical terms accurate.",
-              },
-              {
-                step: "03",
-                title: "Generate adaptive quiz",
-                body: "Claude reads the transcript to produce bullet summaries and concept-anchored multiple-choice questions.",
-              },
-            ].map((item, idx) => (
-              <Grid key={item.step} size={{ xs: 12, md: 4 }}>
-                <Paper
-                  elevation={10}
-                  sx={{
-                    position: "relative",
-                    p: 2.5,
-                    borderRadius: 3,
-                    overflow: "hidden",
-                    bgcolor: "rgba(15,23,42,0.96)",
-                    border: "1px solid rgba(148,163,184,0.35)",
-                    transform: "translateY(0px)",
-                    transition:
-                      "transform 180ms ease-out, box-shadow 180ms ease-out",
-                    "&:hover": {
-                      transform: "translateY(-4px)",
-                      boxShadow: "0 18px 50px rgba(15,23,42,0.9)",
-                    },
-                  }}
+        {/* ─── STATS ─── */}
+        <AnimatedSection>
+          <Grid container spacing={2} sx={{ mb: { xs: 8, md: 12 } }}>
+            {stats.map((s, i) => (
+              <Grid key={s.label} size={{ xs: 6, md: 3 }}>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1, duration: 0.4 }}
                 >
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      inset: 0,
-                      background:
-                        "radial-gradient(circle at top,rgba(56,189,248,0.25),transparent 60%)",
-                      opacity: 0.4,
-                      pointerEvents: "none",
-                    }}
-                  />
-                  <Box sx={{ position: "relative" }}>
+                  <Box sx={{ textAlign: 'center', py: 2 }}>
                     <Typography
-                      variant="caption"
-                      sx={{
-                        fontSize: 10,
-                        letterSpacing: ".3em",
-                        textTransform: "uppercase",
-                        color: "#9ca3af",
-                      }}
+                      variant='h4'
+                      sx={{ color: 'text.primary', fontWeight: 700, fontSize: { xs: 24, md: 32 } }}
                     >
-                      STEP {item.step}
+                      {s.value}
                     </Typography>
                     <Typography
-                      variant="subtitle2"
-                      sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
+                      variant='body2'
+                      sx={{ color: 'text.secondary', mt: 0.5, fontSize: 13 }}
                     >
-                      {item.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ mt: 1, fontSize: 12, color: "#9ca3af" }}
-                    >
-                      {item.body}
+                      {s.label}
                     </Typography>
                   </Box>
-                </Paper>
+                </motion.div>
               </Grid>
             ))}
           </Grid>
+        </AnimatedSection>
+
+        {/* ─── PIPELINE ─── */}
+        <Box id='pipeline' sx={{ mb: { xs: 8, md: 14 } }}>
+          <AnimatedSection>
+            <Box sx={{ mb: 5 }}>
+              <Typography variant='overline' sx={{ color: 'text.secondary', letterSpacing: 2 }}>
+                How it works
+              </Typography>
+              <Typography variant='h4' sx={{ color: 'text.primary', mt: 0.5, maxWidth: 500 }}>
+                The AI pipeline behind every quiz.
+              </Typography>
+              <Typography variant='body1' sx={{ color: 'text.secondary', mt: 1, maxWidth: 550 }}>
+                Each lecture goes through four processing stages — fully automated, from raw video
+                to student-ready assessment.
+              </Typography>
+            </Box>
+          </AnimatedSection>
+
+          <Grid container spacing={2}>
+            {pipelineSteps.map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <Grid key={step.num} size={{ xs: 12, sm: 6, md: 3 }}>
+                  <AnimatedCard index={i}>
+                    <Paper
+                      sx={{
+                        p: 3,
+                        height: '100%',
+                        border: 1,
+                        borderColor: 'divider',
+                        bgcolor: 'background.paper',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        position: 'relative',
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          position: 'absolute',
+                          top: 12,
+                          right: 16,
+                          fontSize: 48,
+                          fontWeight: 800,
+                          color: 'divider',
+                          lineHeight: 1,
+                          userSelect: 'none',
+                        }}
+                      >
+                        {step.num}
+                      </Typography>
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 2,
+                          bgcolor: 'action.hover',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 2,
+                        }}
+                      >
+                        <Icon size={18} />
+                      </Box>
+                      <Typography variant='subtitle2' sx={{ color: 'text.primary', mb: 0.5 }}>
+                        {step.title}
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        sx={{ color: 'text.secondary', fontSize: 13, flex: 1 }}
+                      >
+                        {step.body}
+                      </Typography>
+                      <Chip
+                        label={step.detail}
+                        size='small'
+                        sx={{
+                          mt: 2,
+                          alignSelf: 'flex-start',
+                          height: 22,
+                          fontSize: 10,
+                          fontWeight: 500,
+                          bgcolor: 'action.hover',
+                          color: 'text.secondary',
+                        }}
+                      />
+                    </Paper>
+                  </AnimatedCard>
+                </Grid>
+              );
+            })}
+          </Grid>
+
+          {/* Interactive pipeline demo */}
+          <PipelineDemo />
         </Box>
 
-        {/* FEATURES */}
-        <Box id="features" sx={{ mt: 10 }}>
-          <Box
+        {/* ─── FEATURES ─── */}
+        <Box id='features' sx={{ mb: { xs: 8, md: 14 } }}>
+          <AnimatedSection>
+            <Box sx={{ mb: 5 }}>
+              <Typography variant='overline' sx={{ color: 'text.secondary', letterSpacing: 2 }}>
+                Features
+              </Typography>
+              <Typography variant='h4' sx={{ color: 'text.primary', mt: 0.5, maxWidth: 500 }}>
+                Everything you need, nothing you don't.
+              </Typography>
+            </Box>
+          </AnimatedSection>
+
+          <Grid container spacing={2}>
+            {features.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <Grid key={f.title} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <AnimatedCard index={i}>
+                    <Paper
+                      sx={{
+                        p: 3,
+                        height: '100%',
+                        border: 1,
+                        borderColor: 'divider',
+                        bgcolor: 'background.paper',
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 2,
+                          bgcolor: 'action.hover',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          mb: 2,
+                        }}
+                      >
+                        <Icon size={18} />
+                      </Box>
+                      <Typography variant='subtitle2' sx={{ color: 'text.primary', mb: 0.5 }}>
+                        {f.title}
+                      </Typography>
+                      <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: 13 }}>
+                        {f.body}
+                      </Typography>
+                    </Paper>
+                  </AnimatedCard>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Box>
+
+        {/* ─── BENEFITS ─── */}
+        <Box id='benefits' sx={{ mb: { xs: 8, md: 14 } }}>
+          <AnimatedSection>
+            <Box sx={{ mb: 5 }}>
+              <Typography variant='overline' sx={{ color: 'text.secondary', letterSpacing: 2 }}>
+                Who it's for
+              </Typography>
+              <Typography variant='h4' sx={{ color: 'text.primary', mt: 0.5 }}>
+                Designed for both sides of the classroom.
+              </Typography>
+            </Box>
+          </AnimatedSection>
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <AnimatedCard index={0}>
+                <Paper
+                  sx={{
+                    p: 3,
+                    height: '100%',
+                    border: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 1.5,
+                        bgcolor: 'action.hover',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <BookOpen size={16} />
+                    </Box>
+                    <Typography variant='subtitle1' sx={{ color: 'text.primary' }}>
+                      For Professors
+                    </Typography>
+                  </Box>
+                  <Typography variant='body2' sx={{ color: 'text.secondary', mb: 2 }}>
+                    Turn every lecture into an assessment — automatically.
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {[
+                      'Auto-generate quizzes after each lecture',
+                      'Map questions to learning outcomes',
+                      'See which concepts need reteaching',
+                      'Export to LMS or share with one click',
+                    ].map((item) => (
+                      <Box key={item} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <CheckCircle2 size={14} style={{ marginTop: 3, flexShrink: 0 }} />
+                        <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: 13 }}>
+                          {item}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
+              </AnimatedCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <AnimatedCard index={1}>
+                <Paper
+                  sx={{
+                    p: 3,
+                    height: '100%',
+                    border: 1,
+                    borderColor: 'divider',
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 1.5,
+                        bgcolor: 'action.hover',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <GraduationCap size={16} />
+                    </Box>
+                    <Typography variant='subtitle1' sx={{ color: 'text.primary' }}>
+                      For Students
+                    </Typography>
+                  </Box>
+                  <Typography variant='body2' sx={{ color: 'text.secondary', mb: 2 }}>
+                    Practice that follows the lecture, not the textbook.
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {[
+                      'Quiz on exactly what you just watched',
+                      'Focus on weak spots with targeted retries',
+                      'Track progress across lectures and weeks',
+                      'Revisit tricky segments with timestamps',
+                    ].map((item) => (
+                      <Box key={item} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                        <CheckCircle2 size={14} style={{ marginTop: 3, flexShrink: 0 }} />
+                        <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: 13 }}>
+                          {item}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
+              </AnimatedCard>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* ─── CTA ─── */}
+        <AnimatedSection>
+          <Paper
             sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              justifyContent: "space-between",
-              gap: 2,
-              mb: 3,
+              p: { xs: 3, md: 5 },
+              border: 1,
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { md: 'center' },
+              gap: 3,
             }}
           >
             <Box>
-              <Typography
-                variant="caption"
-                sx={{
-                  letterSpacing: ".2em",
-                  textTransform: "uppercase",
-                  color: "#a5b4fc",
-                }}
-              >
-                PLATFORM FEATURES
+              <Typography variant='h5' sx={{ color: 'text.primary' }}>
+                Ready to transform your lectures?
               </Typography>
-              <Typography
-                variant="h6"
-                sx={{
-                  mt: 1,
-                  color: "#e5e7eb",
-                  fontWeight: 600,
-                  fontSize: { xs: 18, md: 22 },
-                }}
-              >
-                Built for real lecture workflows, not generic quizzes.
+              <Typography variant='body1' sx={{ color: 'text.secondary', mt: 0.5 }}>
+                Start with a single module. Measure concept mastery. Scale with confidence.
               </Typography>
             </Box>
-          </Box>
-
-          <Grid container spacing={2.5}>
-            {[
-              {
-                title: "Concept-aware question generation",
-                body: "Questions are anchored to core concepts, not random sentences. Every item knows exactly which learning outcome it targets.",
-              },
-              {
-                title: "Difficulty-curved quizzes",
-                body: "Start with warm-up questions, then ramp up to deeper application and synthesis using prior performance data.",
-              },
-              {
-                title: "LMS-friendly & privacy-first",
-                body: "Designed to plug into existing LMS workflows and keep student data encrypted and under institutional control.",
-              },
-            ].map((item, idx) => (
-              <Grid key={item.title} size={{ xs: 12, md: 4 }}>
-                <Paper
-                  sx={{
-                    p: 2.5,
-                    borderRadius: 3,
-                    bgcolor: "rgba(15,23,42,0.96)",
-                    border: "1px solid rgba(148,163,184,0.35)",
-                    height: "100%",
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ color: "#e5e7eb", fontWeight: 600 }}
-                  >
-                    {item.title}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ mt: 1, fontSize: 12, color: "#9ca3af" }}
-                  >
-                    {item.body}
-                  </Typography>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
-        {/* BENEFITS */}
-        <Grid id="benefits" container spacing={2.5} sx={{ mt: 10 }}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 3,
-                bgcolor: "rgba(15,23,42,0.96)",
-                border: "1px solid rgba(129,140,248,0.45)",
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  letterSpacing: ".2em",
-                  textTransform: "uppercase",
-                  color: "#a5b4fc",
-                }}
-              >
-                FOR PROFESSORS
-              </Typography>
-              <Typography
-                variant="subtitle1"
-                sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
-              >
-                Turn lectures into assessments without extra prep time.
-              </Typography>
-              <Box
-                component="ul"
-                sx={{
-                  mt: 2,
-                  pl: 2,
-                  fontSize: 12,
-                  color: "#cbd5f5",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 0.5,
-                }}
-              >
-                <li>Auto-generate quizzes minutes after each lecture.</li>
-                <li>Map questions to learning outcomes and modules.</li>
-                <li>See which concepts need reteaching at a glance.</li>
-                <li>Export to LMS or share links with one click.</li>
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 3,
-                bgcolor: "rgba(15,23,42,0.96)",
-                border: "1px solid rgba(52,211,153,0.55)",
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  letterSpacing: ".2em",
-                  textTransform: "uppercase",
-                  color: "#6ee7b7",
-                }}
-              >
-                FOR STUDENTS
-              </Typography>
-              <Typography
-                variant="subtitle1"
-                sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
-              >
-                Adaptive practice that follows the lecture, not the textbook.
-              </Typography>
-              <Box
-                component="ul"
-                sx={{
-                  mt: 2,
-                  pl: 2,
-                  fontSize: 12,
-                  color: "#cbd5f5",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 0.5,
-                }}
-              >
-                <li>Quiz directly on what you just watched.</li>
-                <li>Focus on weak spots with targeted retries.</li>
-                <li>Track progress across lectures and weeks.</li>
-                <li>Revisit tricky segments with time-stamped links.</li>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-
-        {/* DEMO */}
-        <Paper
-          id="demo"
-          sx={{
-            mt: 10,
-            p: 3,
-            borderRadius: 3,
-            bgcolor: "rgba(15,23,42,0.96)",
-            border: "1px solid rgba(148,163,184,0.35)",
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: 2.5,
-          }}
-        >
-          <Box
-            sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 1.5 }}
-          >
-            <Typography
-              variant="caption"
-              sx={{
-                letterSpacing: ".2em",
-                textTransform: "uppercase",
-                color: "#7dd3fc",
-              }}
-            >
-              INTERACTIVE DEMO
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              sx={{ color: "#e5e7eb", fontWeight: 600 }}
-            >
-              Experience the professor and student dashboards.
-            </Typography>
-            <Typography variant="body2" sx={{ fontSize: 12, color: "#9ca3af" }}>
-              Explore how LectureQuiz AI visualises lecture coverage, question
-              quality, and student performance with live dashboards.
-            </Typography>
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mt: 1 }}>
-              <Button component={Link} href="/dashboard/professor" size="small">
-                Professor dashboard
+            <Box sx={{ display: 'flex', gap: 1.5, flexShrink: 0 }}>
+              <Button component={Link} href='/register' size='large'>
+                Get started free
+                <ArrowRight size={16} style={{ marginLeft: 6 }} />
               </Button>
-              <Button
-                component={Link}
-                href="/dashboard/student"
-                size="small"
-                variant="outlined"
-              >
-                Student dashboard
+              <Button component={Link} href='/dashboard/professor' variant='outlined' size='large'>
+                Try demo
               </Button>
             </Box>
-          </Box>
-          <Box
-            sx={{
-              flex: 1,
-              borderRadius: 3,
-              border: "1px solid rgba(148,163,184,0.4)",
-              bgcolor: "#020617",
-              p: 2,
-              fontSize: 12,
-              color: "#9ca3af",
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{ color: "#e5e7eb", fontWeight: 500 }}
-            >
-              This is where a real product demo or embedded video would live.
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 1.5, fontSize: 12 }}>
-              In production, this surface can showcase AI-generated quiz flows:
-              upload a short lecture sample, watch Whisper transcribe it, then
-              preview generated questions live.
-            </Typography>
-          </Box>
-        </Paper>
+          </Paper>
+        </AnimatedSection>
 
-        {/* CTA + FOOTER */}
-        <Paper
-          sx={{
-            mt: 10,
-            p: 3,
-            borderRadius: 3,
-            bgcolor: "rgba(15,23,42,0.96)",
-            border: "1px solid rgba(148,163,184,0.35)",
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            justifyContent: "space-between",
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{
-                letterSpacing: ".2em",
-                textTransform: "uppercase",
-                color: "#a5b4fc",
-              }}
-            >
-              READY TO TRY
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              sx={{ mt: 1, color: "#e5e7eb", fontWeight: 600 }}
-            >
-              Pilot LectureQuiz AI with your next course.
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ mt: 1, fontSize: 12, color: "#9ca3af" }}
-            >
-              Start with a single module, measure concept mastery, and scale to
-              your entire program with confidence.
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: { xs: "column", md: "row" },
-              gap: 1.5,
-            }}
-          >
-            <Button component={Link} href="/register" size="large">
-              Create educator account
-            </Button>
-            <Button component="a" href="#demo" size="large" variant="outlined">
-              View live demo
-            </Button>
-          </Box>
-        </Paper>
-
+        {/* ─── FOOTER ─── */}
         <Box
-          component="footer"
+          component='footer'
           sx={{
-            mt: 4,
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: 11,
-            color: "#6b7280",
-            gap: 1.5,
+            mt: 8,
+            pt: 3,
+            borderTop: 1,
+            borderColor: 'divider',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            color: 'text.secondary',
           }}
         >
-          <Typography variant="caption">
-            © {new Date().getFullYear()} LectureQuiz AI. All rights reserved.
+          <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+            &copy; {new Date().getFullYear()} LectureQuiz AI
           </Typography>
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <Link href="#" style={{ color: "inherit", textDecoration: "none" }}>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Link href='#' style={{ color: 'inherit', textDecoration: 'none', fontSize: 12 }}>
               Privacy
             </Link>
-            <Link href="#" style={{ color: "inherit", textDecoration: "none" }}>
+            <Link href='#' style={{ color: 'inherit', textDecoration: 'none', fontSize: 12 }}>
               Terms
             </Link>
           </Box>

@@ -7,6 +7,7 @@ import { prisma } from "../prisma/client";
 import {
   generateBulletPointsAndQuiz,
   generateBulletPointsOnlyFromTranscript,
+  getDemoBulletPointsAndQuiz,
   transcribeAudioFile,
 } from "./lectureAiService";
 import { extractAudioToMp3 } from "./videoAudioService";
@@ -53,12 +54,6 @@ export async function generateBulletPointsOnlyForLecture(
 ): Promise<{
   bulletPoints: string[];
 }> {
-  if (!env.anthropicApiKey.trim()) {
-    throw new Error(
-      "ANTHROPIC_API_KEY is required for summary bullets (Claude). Transcribe the lecture first.",
-    );
-  }
-
   const lecture = await prisma.lecture.findUnique({
     where: { id: lectureId },
   });
@@ -67,14 +62,10 @@ export async function generateBulletPointsOnlyForLecture(
     throw new Error("Lecture not found");
   }
 
-  const transcript = lecture.transcript?.trim();
-  if (!transcript) {
-    throw new Error(
-      "No transcript on this lecture yet. Run Whisper (transcribe) first.",
-    );
-  }
+  const transcript = lecture.transcript?.trim() || "(demo transcript)";
 
-  const bulletPoints = await generateBulletPointsOnlyFromTranscript(transcript);
+  const bulletPoints =
+    await generateBulletPointsOnlyFromTranscript(transcript);
 
   await prisma.lecture.update({
     where: { id: lecture.id },
@@ -93,18 +84,19 @@ export async function generateQuizFromLecture(lectureId: number) {
     throw new Error("Lecture not found");
   }
 
-  if (!env.anthropicApiKey.trim()) {
-    throw new Error(
-      "ANTHROPIC_API_KEY is required for bullet points and quiz (Claude). For transcription only, use POST /lectures/:id/transcribe with WHISPER_BACKEND=local.",
-    );
+  const hasAnthropic = Boolean(env.anthropicApiKey.trim());
+
+  let transcript = lecture.transcript?.trim() || "";
+  if (!transcript && hasAnthropic) {
+    transcript = await transcribeVideoUrlToText(lecture.videoUrl);
+  }
+  if (!transcript) {
+    transcript = "(demo transcript)";
   }
 
-  const transcript = lecture.transcript?.trim()
-    ? lecture.transcript
-    : await transcribeVideoUrlToText(lecture.videoUrl);
-
-  const { bulletPoints, questions } =
-    await generateBulletPointsAndQuiz(transcript);
+  const { bulletPoints, questions } = hasAnthropic
+    ? await generateBulletPointsAndQuiz(transcript)
+    : getDemoBulletPointsAndQuiz(transcript);
 
   const quiz = await prisma.$transaction(async (tx) => {
     await tx.lecture.update({
