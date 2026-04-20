@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import { env } from "./config/env";
 import { authRouter } from "./routes/authRoutes";
+import { courseRouter } from "./routes/courseRoutes";
 import { lectureRouter } from "./routes/lectureRoutes";
 import { quizRouter } from "./routes/quizRoutes";
 
@@ -25,6 +26,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/courses", courseRouter);
 app.use("/lectures", lectureRouter);
 app.use("/quizzes", quizRouter);
 

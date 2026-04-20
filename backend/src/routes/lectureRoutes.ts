@@ -71,11 +71,29 @@ router.post(
       const relative = `/uploads/${req.file.filename}`;
       const videoUrl = `${env.apiPublicUrl.replace(/\/$/, "")}${relative}`;
 
+      const courseIdRaw = req.body?.courseId as string | undefined;
+      const courseId = courseIdRaw ? Number.parseInt(courseIdRaw, 10) : null;
+
+      if (courseId !== null) {
+        if (!Number.isFinite(courseId) || courseId < 1) {
+          return res.status(400).json({ message: "Invalid courseId" });
+        }
+        const course = await prisma.course.findUnique({
+          where: { id: courseId },
+        });
+        if (!course || course.professorId !== req.user.userId) {
+          return res
+            .status(403)
+            .json({ message: "Course not found or not yours" });
+        }
+      }
+
       const lecture = await prisma.lecture.create({
         data: {
           title,
           videoUrl,
           professorId: req.user.userId,
+          courseId,
         },
       });
 
@@ -109,17 +127,45 @@ router.get("/ai-capabilities", (_req, res) => {
 
 router.get("/", authenticate, async (req: AuthRequest, res) => {
   try {
+    const courseIdFilter = req.query.courseId
+      ? Number.parseInt(req.query.courseId as string, 10)
+      : null;
+
     if (req.user?.role === "professor") {
+      const where: Record<string, unknown> = {
+        professorId: req.user.userId,
+      };
+      if (courseIdFilter) where.courseId = courseIdFilter;
+
       const lectures = await prisma.lecture.findMany({
-        where: { professorId: req.user.userId },
+        where,
         orderBy: { createdAt: "desc" },
+        include: { course: { select: { id: true, name: true, code: true } } },
       });
       return res.json({ lectures });
     }
 
+    const enrolledCourseIds = (
+      await prisma.enrollment.findMany({
+        where: { studentId: req.user!.userId },
+        select: { courseId: true },
+      })
+    ).map((e) => e.courseId);
+
+    const where: Record<string, unknown> = {
+      courseId: { in: enrolledCourseIds },
+    };
+    if (courseIdFilter && enrolledCourseIds.includes(courseIdFilter)) {
+      where.courseId = courseIdFilter;
+    }
+
     const lectures = await prisma.lecture.findMany({
+      where,
       orderBy: { createdAt: "desc" },
-      include: { quizzes: { select: { id: true } } },
+      include: {
+        quizzes: { select: { id: true } },
+        course: { select: { id: true, name: true, code: true } },
+      },
     });
     return res.json({ lectures });
   } catch (e) {
@@ -128,7 +174,7 @@ router.get("/", authenticate, async (req: AuthRequest, res) => {
   }
 });
 
-router.get("/:id", authenticate, async (req, res) => {
+router.get("/:id", authenticate, async (req: AuthRequest, res) => {
   try {
     const lectureId = parseLectureIdParam(req.params.id);
     if (lectureId === null) {
@@ -137,10 +183,27 @@ router.get("/:id", authenticate, async (req, res) => {
 
     const lecture = await prisma.lecture.findUnique({
       where: { id: lectureId },
+      include: { course: { select: { id: true, name: true, code: true } } },
     });
 
     if (!lecture) {
       return res.status(404).json({ message: "Lecture not found" });
+    }
+
+    if (req.user?.role === "student" && lecture.courseId) {
+      const enrollment = await prisma.enrollment.findUnique({
+        where: {
+          studentId_courseId: {
+            studentId: req.user.userId,
+            courseId: lecture.courseId,
+          },
+        },
+      });
+      if (!enrollment) {
+        return res
+          .status(403)
+          .json({ message: "You are not enrolled in this course" });
+      }
     }
 
     const bulletPoints = parseBulletPoints(lecture.bulletPoints);

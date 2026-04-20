@@ -15,8 +15,36 @@ model User {
   role      Role
   createdAt DateTime @default(now())
 
-  lectures     Lecture[]    @relation("ProfessorLectures")
+  lectures     Lecture[]     @relation("ProfessorLectures")
   quizResults  QuizResult[]
+  courses      Course[]      @relation("ProfessorCourses")
+  enrollments  Enrollment[]  @relation("StudentEnrollments")
+}
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  name        String
+  code        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+
+  professor   User     @relation("ProfessorCourses", fields: [professorId], references: [id])
+  professorId Int
+
+  lectures    Lecture[]
+  enrollments Enrollment[]
+}
+
+model Enrollment {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  student   User   @relation("StudentEnrollments", fields: [studentId], references: [id])
+  studentId Int
+  course    Course @relation(fields: [courseId], references: [id])
+  courseId   Int
+
+  @@unique([studentId, courseId])
 }
 
 model Lecture {
@@ -29,6 +57,9 @@ model Lecture {
 
   professor   User     @relation("ProfessorLectures", fields: [professorId], references: [id])
   professorId Int
+
+  course   Course? @relation(fields: [courseId], references: [id])
+  courseId  Int?
 
   quizzes     Quiz[]
 }
