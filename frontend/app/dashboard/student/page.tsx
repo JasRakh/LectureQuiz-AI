@@ -95,7 +95,7 @@ export default function StudentDashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
   const getToken = () =>
     typeof window !== 'undefined' ? window.localStorage.getItem('lecturequiz_token') : null;
 
@@ -115,6 +115,7 @@ export default function StudentDashboardPage() {
       setCoursesLoading(false);
     }
   }, [apiBase]);
+
 
   const handleEnroll = async (courseId: number) => {
     if (!apiBase) return;
