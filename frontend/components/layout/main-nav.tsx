@@ -13,7 +13,10 @@ import IconButton from '@mui/material/IconButton';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Divider from '@mui/material/Divider';
-import { Sun, Moon } from 'lucide-react';
+import Drawer from '@mui/material/Drawer';
+import Paper from '@mui/material/Paper';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Sun, Moon, Bell } from 'lucide-react';
 import { useThemeMode } from '../../lib/theme-context';
 
 const links = [
@@ -31,6 +34,10 @@ export const MainNav = () => {
   const [name, setName] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Array<{ id: number; message: string; isRead: boolean }>>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const menuOpen = Boolean(anchorEl);
 
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register');
@@ -64,6 +71,54 @@ export const MainNav = () => {
     setAnchorEl(null);
     router.push('/login');
   };
+
+  const loadNotifications = async () => {
+    if (typeof window === 'undefined') return;
+    const token = window.localStorage.getItem('lecturequiz_token');
+    if (!token) return;
+    setNotificationsLoading(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${apiBase}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        notifications: Array<{ id: number; message: string; isRead: boolean }>;
+        unreadCount: number;
+      };
+      setNotifications(data.notifications);
+      setUnreadCount(data.unreadCount);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    if (typeof window === 'undefined' || unreadCount === 0) return;
+    const token = window.localStorage.getItem('lecturequiz_token');
+    if (!token) return;
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    await fetch(`${apiBase}/notifications/read-all`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+  };
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+    void loadNotifications();
+    const timer = window.setInterval(() => {
+      void loadNotifications();
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [isLoggedIn]);
 
   return (
     <AppBar
@@ -130,6 +185,36 @@ export const MainNav = () => {
         <Box sx={{ flexGrow: 1 }} />
 
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexShrink: 0 }}>
+          {isLoggedIn && (
+              <IconButton
+                  size='small'
+                  onClick={() => setIsNotificationsOpen(true)}
+                  sx={{ color: 'text.secondary' }}
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                    <Box
+                        sx={{
+                          ml: 0.6,
+                          minWidth: 18,
+                          height: 18,
+                          px: 0.5,
+                          borderRadius: 10,
+                          bgcolor: 'error.main',
+                          color: 'error.contrastText',
+                          display: 'grid',
+                          placeItems: 'center',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          lineHeight: 1,
+                        }}
+                    >
+                      {unreadCount}
+                    </Box>
+                )}
+              </IconButton>
+          )}
+
           <IconButton size='small' onClick={toggleMode} sx={{ color: 'text.secondary' }}>
             {mode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </IconButton>
@@ -224,6 +309,52 @@ export const MainNav = () => {
           )}
         </Box>
       </Toolbar>
+      <Drawer
+        anchor='right'
+        open={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+      >
+        <Box sx={{ width: 360, p: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant='subtitle1' sx={{ color: 'text.primary' }}>
+              Notifications
+            </Typography>
+            <Button
+              size='small'
+              variant='outlined'
+              disabled={unreadCount === 0 || notificationsLoading}
+              onClick={() => void markAllNotificationsRead()}
+            >
+              Mark all read
+            </Button>
+          </Box>
+          {notificationsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={18} />
+            </Box>
+          ) : notifications.length === 0 ? (
+            <Typography variant='body2' sx={{ color: 'text.secondary' }}>
+              No notifications yet.
+            </Typography>
+          ) : (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {notifications.map((notification) => (
+                <Paper key={notification.id} sx={{ p: 1.25, border: 1, borderColor: 'divider' }}>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: notification.isRead ? 'text.secondary' : 'text.primary',
+                      fontWeight: notification.isRead ? 400 : 600,
+                    }}
+                  >
+                    {notification.message}
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          )}
+        </Box>
+      </Drawer>
     </AppBar>
   );
 };
