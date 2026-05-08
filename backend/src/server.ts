@@ -7,7 +7,6 @@ import { authRouter } from "./routes/authRoutes";
 import { courseRouter } from "./routes/courseRoutes";
 import { lectureRouter } from "./routes/lectureRoutes";
 import { quizRouter } from "./routes/quizRoutes";
-import { notificationRouter } from "./routes/notificationRoutes";
 
 const app = express();
 
@@ -30,7 +29,6 @@ app.use("/auth", authRouter);
 app.use("/courses", courseRouter);
 app.use("/lectures", lectureRouter);
 app.use("/quizzes", quizRouter);
-app.use("/notifications", notificationRouter);
 
 app.listen(env.port, () => {
   // eslint-disable-next-line no-console

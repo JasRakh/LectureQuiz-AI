@@ -19,7 +19,6 @@ model User {
   quizResults  QuizResult[]
   courses      Course[]      @relation("ProfessorCourses")
   enrollments  Enrollment[]  @relation("StudentEnrollments")
-  notifications Notification[]
 }
 
 model Course {
@@ -93,16 +92,6 @@ model QuizResult {
   quizId    Int
   score     Int
   createdAt DateTime @default(now())
-}
-
-model Notification {
-  id        Int      @id @default(autoincrement())
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user      User @relation(fields: [userId], references: [id])
-  userId    Int
 }
 
 enum Role {

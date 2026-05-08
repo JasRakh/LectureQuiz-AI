@@ -97,34 +97,6 @@ router.post(
         },
       });
 
-      if (courseId !== null) {
-        const [enrollments, professor] = await Promise.all([
-          prisma.enrollment.findMany({
-            where: { courseId },
-            select: { studentId: true },
-          }),
-          prisma.user.findUnique({
-            where: { id: req.user.userId },
-            select: { name: true },
-          }),
-        ]);
-
-        if (enrollments.length > 0) {
-          const professorName = professor?.name ?? "Преподаватель";
-          const notification = (prisma as any).notification as
-            | { createMany: (args: { data: Array<{ userId: number; message: string }> }) => Promise<unknown> }
-            | undefined;
-          if (notification) {
-            await notification.createMany({
-              data: enrollments.map((enrollment) => ({
-                userId: enrollment.studentId,
-                message: `Профессор ${professorName} загрузил урок "${title}", просмотрите и пройдите тест.`,
-              })),
-            });
-          }
-        }
-      }
-
       return res.status(201).json({ lecture });
     } catch (e) {
       console.error(e);

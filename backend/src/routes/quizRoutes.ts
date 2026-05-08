@@ -97,33 +97,6 @@ quizRouter.post(
         },
       });
 
-      const quizWithRelations = await prisma.quiz.findUnique({
-        where: { id: quizId },
-        include: {
-          lecture: {
-            select: { professorId: true },
-          },
-        },
-      });
-      const student = await prisma.user.findUnique({
-        where: { id: req.user!.userId },
-        select: { name: true },
-      });
-
-      if (quizWithRelations?.lecture.professorId && student?.name) {
-        const notification = (prisma as any).notification as
-          | { create: (args: { data: { userId: number; message: string } }) => Promise<unknown> }
-          | undefined;
-        if (notification) {
-          await notification.create({
-            data: {
-              userId: quizWithRelations.lecture.professorId,
-              message: `${student.name} прошел квиз, посмотрите результат.`,
-            },
-          });
-        }
-      }
-
       return res.status(201).json({ result, score, correct, total, feedback });
     } catch (err) {
       if (err instanceof z.ZodError) {
