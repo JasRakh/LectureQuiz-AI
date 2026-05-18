@@ -51,7 +51,12 @@ type SubmitFeedbackItem = {
   correctAnswer: string;
   yourAnswer: string | null;
 };
-type SubmitResult = { score: number; correct: number; total: number; feedback: SubmitFeedbackItem[] };
+type SubmitResult = {
+  score: number;
+  correct: number;
+  total: number;
+  feedback: SubmitFeedbackItem[];
+};
 
 function parseOptions(raw: string): string[] {
   try {
@@ -95,12 +100,15 @@ export default function StudentDashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
   const getToken = () =>
     typeof window !== 'undefined' ? window.localStorage.getItem('lecturequiz_token') : null;
 
   const loadCourses = useCallback(async () => {
-    if (!apiBase || !getToken()) { setCoursesLoading(false); return; }
+    if (!apiBase || !getToken()) {
+      setCoursesLoading(false);
+      return;
+    }
     setCoursesLoading(true);
     try {
       const res = await fetch(`${apiBase}/courses`, {
@@ -161,22 +169,28 @@ export default function StudentDashboardPage() {
     }
   };
 
-  const loadLectures = useCallback(async (courseId: number) => {
-    if (!apiBase || !getToken()) { setListLoading(false); return; }
-    setListLoading(true);
-    try {
-      const res = await fetch(`${apiBase}/lectures?courseId=${courseId}`, {
-        headers: { Authorization: `Bearer ${getToken()}` },
-      });
-      if (!res.ok) throw new Error('Could not load lectures');
-      const data = (await res.json()) as { lectures: LectureRow[] } | LectureRow[];
-      setLectures(Array.isArray(data) ? data : data.lectures);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to load lectures');
-    } finally {
-      setListLoading(false);
-    }
-  }, [apiBase]);
+  const loadLectures = useCallback(
+    async (courseId: number) => {
+      if (!apiBase || !getToken()) {
+        setListLoading(false);
+        return;
+      }
+      setListLoading(true);
+      try {
+        const res = await fetch(`${apiBase}/lectures?courseId=${courseId}`, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        if (!res.ok) throw new Error('Could not load lectures');
+        const data = (await res.json()) as { lectures: LectureRow[] } | LectureRow[];
+        setLectures(Array.isArray(data) ? data : data.lectures);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Failed to load lectures');
+      } finally {
+        setListLoading(false);
+      }
+    },
+    [apiBase]
+  );
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -207,7 +221,10 @@ export default function StudentDashboardPage() {
     const onSeeked = () => {
       if (!seekLock) return;
       maxWatchedRef.current = savedMax;
-      if (el.currentTime > savedMax + 0.5) { el.currentTime = savedMax; return; }
+      if (el.currentTime > savedMax + 0.5) {
+        el.currentTime = savedMax;
+        return;
+      }
       seekLock = false;
       if (wasPlaying) el.play().catch(() => {});
     };
@@ -225,8 +242,12 @@ export default function StudentDashboardPage() {
     };
   }, [videoLecture]);
 
-  useEffect(() => { void loadCourses(); }, [loadCourses]);
-  useEffect(() => { if (selectedCourse) void loadLectures(selectedCourse.id); }, [selectedCourse, loadLectures]);
+  useEffect(() => {
+    void loadCourses();
+  }, [loadCourses]);
+  useEffect(() => {
+    if (selectedCourse) void loadLectures(selectedCourse.id);
+  }, [selectedCourse, loadLectures]);
 
   const startQuiz = async (quizId: number) => {
     if (!apiBase) return;
@@ -271,7 +292,12 @@ export default function StudentDashboardPage() {
     }
   };
 
-  const exitQuiz = () => { setActiveQuiz(null); setResult(null); setAnswers({}); setCurrentQ(0); };
+  const exitQuiz = () => {
+    setActiveQuiz(null);
+    setResult(null);
+    setAnswers({});
+    setCurrentQ(0);
+  };
 
   const handleTranscribe = async () => {
     if (!apiBase || !videoLecture) return;
@@ -311,7 +337,12 @@ export default function StudentDashboardPage() {
         <Button
           variant='text'
           size='small'
-          onClick={() => { setVideoLecture(null); setVideoEnded(false); setTranscribing(false); maxWatchedRef.current = 0; }}
+          onClick={() => {
+            setVideoLecture(null);
+            setVideoEnded(false);
+            setTranscribing(false);
+            maxWatchedRef.current = 0;
+          }}
           sx={{ color: 'text.secondary', alignSelf: 'flex-start' }}
         >
           <ChevronLeft size={16} style={{ marginRight: 4 }} />
@@ -339,11 +370,16 @@ export default function StudentDashboardPage() {
         )}
 
         {(videoEnded || videoLecture.transcript) && videoLecture.transcript ? (
-          <Paper sx={{ p: 2.5, border: 1, borderColor: 'divider', maxHeight: 300, overflow: 'auto' }}>
+          <Paper
+            sx={{ p: 2.5, border: 1, borderColor: 'divider', maxHeight: 300, overflow: 'auto' }}
+          >
             <Typography variant='subtitle2' sx={{ color: 'secondary.main', mb: 1 }}>
               Transcript
             </Typography>
-            <Typography variant='body2' sx={{ color: 'text.secondary', whiteSpace: 'pre-wrap', fontSize: 13 }}>
+            <Typography
+              variant='body2'
+              sx={{ color: 'text.secondary', whiteSpace: 'pre-wrap', fontSize: 13 }}
+            >
               {videoLecture.transcript}
             </Typography>
           </Paper>
@@ -354,7 +390,10 @@ export default function StudentDashboardPage() {
             </Typography>
             <Button size='small' disabled={transcribing} onClick={() => void handleTranscribe()}>
               {transcribing ? (
-                <><Loader2 size={14} style={{ marginRight: 6 }} className='animate-spin' /> Transcribing...</>
+                <>
+                  <Loader2 size={14} style={{ marginRight: 6 }} className='animate-spin' />{' '}
+                  Transcribing...
+                </>
               ) : (
                 'Generate Transcript'
               )}
@@ -456,7 +495,10 @@ export default function StudentDashboardPage() {
               onClick={() => void submitQuiz()}
             >
               {submitting ? (
-                <><Loader2 size={14} style={{ marginRight: 4 }} className='animate-spin' /> Submitting...</>
+                <>
+                  <Loader2 size={14} style={{ marginRight: 4 }} className='animate-spin' />{' '}
+                  Submitting...
+                </>
               ) : (
                 `Submit (${answeredCount}/${total})`
               )}
@@ -504,7 +546,10 @@ export default function StudentDashboardPage() {
                   borderLeftColor: fb.correct ? 'success.main' : 'error.main',
                 }}
               >
-                <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 500, mb: 0.5 }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'text.primary', fontWeight: 500, mb: 0.5 }}
+                >
                   {i + 1}. {q?.question ?? `Question #${fb.questionId}`}
                 </Typography>
                 {!fb.correct && (
@@ -537,7 +582,10 @@ export default function StudentDashboardPage() {
         <Button
           variant='text'
           size='small'
-          onClick={() => { setSelectedCourse(null); setLectures([]); }}
+          onClick={() => {
+            setSelectedCourse(null);
+            setLectures([]);
+          }}
           sx={{ color: 'text.secondary', alignSelf: 'flex-start' }}
         >
           <ChevronLeft size={16} style={{ marginRight: 4 }} />
@@ -563,7 +611,14 @@ export default function StudentDashboardPage() {
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 8 }}>
             <Paper sx={{ p: 2.5, border: 1, borderColor: 'divider', minHeight: 400 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  mb: 2,
+                  alignItems: 'center',
+                }}
+              >
                 <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
                   Lectures
                 </Typography>
@@ -583,13 +638,27 @@ export default function StudentDashboardPage() {
                   return (
                     <Paper
                       key={lec.id}
-                      sx={{ p: 2, border: 1, borderColor: 'divider', bgcolor: 'background.default' }}
+                      sx={{
+                        p: 2,
+                        border: 1,
+                        borderColor: 'divider',
+                        bgcolor: 'background.default',
+                      }}
                     >
                       <Box
-                        sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 1,
+                          flexWrap: 'wrap',
+                        }}
                       >
                         <Box sx={{ flex: 1, minWidth: 200 }}>
-                          <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 500 }}>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: 'text.primary', fontWeight: 500 }}
+                          >
                             {lec.title}
                           </Typography>
                           <Typography variant='caption' sx={{ color: 'text.secondary' }}>
@@ -599,7 +668,11 @@ export default function StudentDashboardPage() {
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button variant='outlined' size='small' onClick={() => setVideoLecture(lec)}>
+                          <Button
+                            variant='outlined'
+                            size='small'
+                            onClick={() => setVideoLecture(lec)}
+                          >
                             <PlayCircle size={14} style={{ marginRight: 4 }} />
                             Watch
                           </Button>
@@ -714,19 +787,35 @@ export default function StudentDashboardPage() {
                       onClick={() => setSelectedCourse(c)}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Chip label={c.code} size='small' sx={{ bgcolor: 'action.selected', fontWeight: 600, fontSize: 12 }} />
-                        <Chip label='Enrolled' size='small' sx={{ bgcolor: 'success.main', color: 'success.contrastText', fontSize: 10 }} />
+                        <Chip
+                          label={c.code}
+                          size='small'
+                          sx={{ bgcolor: 'action.selected', fontWeight: 600, fontSize: 12 }}
+                        />
+                        <Chip
+                          label='Enrolled'
+                          size='small'
+                          sx={{
+                            bgcolor: 'success.main',
+                            color: 'success.contrastText',
+                            fontSize: 10,
+                          }}
+                        />
                       </Box>
                       <Typography variant='subtitle1' sx={{ color: 'text.primary' }}>
                         {c.name}
                       </Typography>
                       <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-                        Prof. {c.professor.name} · {c._count.lectures} lectures · {c._count.enrollments} students
+                        Prof. {c.professor.name} · {c._count.lectures} lectures ·{' '}
+                        {c._count.enrollments} students
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
                         <Button
                           size='small'
-                          onClick={(e) => { e.stopPropagation(); setSelectedCourse(c); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCourse(c);
+                          }}
                         >
                           <BookOpen size={14} style={{ marginRight: 4 }} />
                           Open
@@ -736,7 +825,10 @@ export default function StudentDashboardPage() {
                           size='small'
                           color='error'
                           disabled={enrolling === c.id}
-                          onClick={(e) => { e.stopPropagation(); void handleUnenroll(c.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleUnenroll(c.id);
+                          }}
                         >
                           {enrolling === c.id ? <CircularProgress size={14} /> : 'Unenroll'}
                         </Button>
@@ -769,17 +861,28 @@ export default function StudentDashboardPage() {
               {availableCourses.map((c) => (
                 <Grid key={c.id} size={{ xs: 12, sm: 6, md: 4 }}>
                   <Paper sx={{ p: 2.5, border: 1, borderColor: 'divider' }}>
-                    <Chip label={c.code} size='small' sx={{ bgcolor: 'action.selected', fontWeight: 600, fontSize: 12, mb: 1 }} />
+                    <Chip
+                      label={c.code}
+                      size='small'
+                      sx={{ bgcolor: 'action.selected', fontWeight: 600, fontSize: 12, mb: 1 }}
+                    />
                     <Typography variant='subtitle1' sx={{ color: 'text.primary' }}>
                       {c.name}
                     </Typography>
                     {c.description && (
-                      <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: 13, mt: 0.5 }}>
+                      <Typography
+                        variant='body2'
+                        sx={{ color: 'text.secondary', fontSize: 13, mt: 0.5 }}
+                      >
                         {c.description}
                       </Typography>
                     )}
-                    <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
-                      Prof. {c.professor.name} · {c._count.lectures} lectures · {c._count.enrollments} enrolled
+                    <Typography
+                      variant='caption'
+                      sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}
+                    >
+                      Prof. {c.professor.name} · {c._count.lectures} lectures ·{' '}
+                      {c._count.enrollments} enrolled
                     </Typography>
                     <Button
                       size='small'
@@ -787,8 +890,12 @@ export default function StudentDashboardPage() {
                       disabled={enrolling === c.id}
                       onClick={() => void handleEnroll(c.id)}
                     >
-                      {enrolling === c.id ? <CircularProgress size={14} /> : (
-                        <><LogIn size={14} style={{ marginRight: 4 }} /> Enroll</>
+                      {enrolling === c.id ? (
+                        <CircularProgress size={14} />
+                      ) : (
+                        <>
+                          <LogIn size={14} style={{ marginRight: 4 }} /> Enroll
+                        </>
                       )}
                     </Button>
                   </Paper>

@@ -108,7 +108,6 @@ router.post(
 router.get("/ai-capabilities", (_req, res) => {
   const whisperBackend = env.whisperBackend;
   const hasOpenAI = Boolean(env.openaiApiKey.trim());
-  const hasAnthropic = Boolean(env.anthropicApiKey.trim());
 
   const whisperAvailable =
     whisperBackend === "local" || (whisperBackend === "openai" && hasOpenAI);
@@ -117,12 +116,12 @@ router.get("/ai-capabilities", (_req, res) => {
     whisperBackend,
     whisperAvailable,
     openaiConfigured: hasOpenAI,
-    anthropicConfigured: hasAnthropic,
-    claudeModel: hasAnthropic ? env.claudeModel : "demo (hardcoded)",
+    anthropicConfigured: false,
+    claudeModel: env.openaiModel,
     canTranscribe: whisperAvailable,
-    canGenerateBullets: true,
-    canGenerateQuiz: true,
-    demoMode: !hasAnthropic,
+    canGenerateBullets: hasOpenAI,
+    canGenerateQuiz: hasOpenAI,
+    demoMode: false,
   });
 });
 
@@ -339,6 +338,64 @@ router.post(
       console.error(e);
       const msg = e instanceof Error ? e.message : "Quiz generation failed";
       return res.status(500).json({ message: msg });
+    }
+  },
+);
+
+router.get(
+  "/:id/quiz-results",
+  authenticate,
+  async (req: AuthRequest, res) => {
+    try {
+      if (req.user?.role !== "professor") {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const lectureId = parseLectureIdParam(req.params.id);
+      if (lectureId === null) {
+        return res.status(400).json({ message: "Invalid lecture id" });
+      }
+
+      const lecture = await prisma.lecture.findUnique({
+        where: { id: lectureId },
+      });
+      if (!lecture) {
+        return res.status(404).json({ message: "Lecture not found" });
+      }
+      if (lecture.professorId !== req.user.userId) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+
+      const quiz = await prisma.quiz.findFirst({
+        where: { lectureId: lecture.id },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, createdAt: true },
+      });
+
+      if (!quiz) {
+        return res.json({ quiz: null, results: [] });
+      }
+
+      const results = await prisma.quizResult.findMany({
+        where: { quizId: quiz.id },
+        orderBy: [{ score: "desc" }, { createdAt: "asc" }],
+        include: {
+          student: { select: { id: true, name: true, email: true } },
+        },
+      });
+
+      return res.json({
+        quiz,
+        results: results.map((r) => ({
+          id: r.id,
+          score: r.score,
+          createdAt: r.createdAt,
+          student: r.student,
+        })),
+      });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ message: "Failed to load quiz results" });
     }
   },
 );

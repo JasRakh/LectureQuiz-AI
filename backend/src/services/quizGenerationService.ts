@@ -7,7 +7,6 @@ import { prisma } from "../prisma/client";
 import {
   generateBulletPointsAndQuiz,
   generateBulletPointsOnlyFromTranscript,
-  getDemoBulletPointsAndQuiz,
   transcribeAudioFile,
 } from "./lectureAiService";
 import { extractAudioToMp3 } from "./videoAudioService";
@@ -84,19 +83,12 @@ export async function generateQuizFromLecture(lectureId: number) {
     throw new Error("Lecture not found");
   }
 
-  const hasAnthropic = Boolean(env.anthropicApiKey.trim());
-
   let transcript = lecture.transcript?.trim() || "";
-  if (!transcript && hasAnthropic) {
+  if (!transcript) {
     transcript = await transcribeVideoUrlToText(lecture.videoUrl);
   }
-  if (!transcript) {
-    transcript = "(demo transcript)";
-  }
-
-  const { bulletPoints, questions } = hasAnthropic
-    ? await generateBulletPointsAndQuiz(transcript)
-    : getDemoBulletPointsAndQuiz(transcript);
+  const { bulletPoints, questions } =
+    await generateBulletPointsAndQuiz(transcript);
 
   const quiz = await prisma.$transaction(async (tx) => {
     await tx.lecture.update({

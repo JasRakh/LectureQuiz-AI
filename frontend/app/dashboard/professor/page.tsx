@@ -26,6 +26,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import { toast } from 'sonner';
+import { Stack } from '@mui/material';
 
 const TOKEN_KEY = 'lecturequiz_token';
 
@@ -105,8 +106,20 @@ export default function ProfessorDashboardPage() {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [generatedQuiz, setGeneratedQuiz] = useState<GeneratedQuiz | null>(null);
+  const [detailTab, setDetailTab] = useState<'whisper' | 'bullets' | 'quiz' | 'results'>('whisper');
 
   const [tab, setTab] = useState<'students' | 'lectures'>('lectures');
+
+  const [quizResults, setQuizResults] = useState<null | {
+    quiz: { id: number; createdAt: string } | null;
+    results: {
+      id: number;
+      score: number;
+      createdAt: string;
+      student: { id: number; name: string; email: string };
+    }[];
+  }>(null);
+  const [loadingResults, setLoadingResults] = useState(false);
 
   const authHeaders = useMemo((): HeadersInit => {
     if (!token) return {};
@@ -115,7 +128,10 @@ export default function ProfessorDashboardPage() {
 
   useEffect(() => {
     const t = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
-    if (!t) { router.replace('/login'); return; }
+    if (!t) {
+      router.replace('/login');
+      return;
+    }
     setToken(t);
   }, [router]);
 
@@ -124,7 +140,9 @@ export default function ProfessorDashboardPage() {
       const res = await fetch(`${apiBase()}/lectures/ai-capabilities`);
       if (!res.ok) return;
       setCaps(await res.json());
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const loadCourses = useCallback(async () => {
@@ -142,52 +160,99 @@ export default function ProfessorDashboardPage() {
     }
   }, [authHeaders, token]);
 
-  const loadStudents = useCallback(async (courseId: number) => {
-    if (!token) return;
-    setLoadingStudents(true);
-    try {
-      const res = await fetch(`${apiBase()}/courses/${courseId}/students`, { headers: authHeaders });
-      if (!res.ok) throw new Error('Failed to load students');
-      const data = (await res.json()) as { students: StudentRow[] };
-      setCourseStudents(data.students);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to load students');
-    } finally {
-      setLoadingStudents(false);
-    }
-  }, [authHeaders, token]);
+  const loadStudents = useCallback(
+    async (courseId: number) => {
+      if (!token) return;
+      setLoadingStudents(true);
+      try {
+        const res = await fetch(`${apiBase()}/courses/${courseId}/students`, {
+          headers: authHeaders,
+        });
+        if (!res.ok) throw new Error('Failed to load students');
+        const data = (await res.json()) as { students: StudentRow[] };
+        setCourseStudents(data.students);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Failed to load students');
+      } finally {
+        setLoadingStudents(false);
+      }
+    },
+    [authHeaders, token]
+  );
 
-  const refreshLectures = useCallback(async (courseId?: number) => {
-    if (!token) return;
-    setLoadingList(true);
-    try {
-      const url = courseId ? `${apiBase()}/lectures?courseId=${courseId}` : `${apiBase()}/lectures`;
-      const res = await fetch(url, { headers: authHeaders });
-      if (res.status === 401) { localStorage.removeItem(TOKEN_KEY); router.replace('/login'); return; }
-      if (!res.ok) throw new Error('Failed to load lectures');
-      const data = (await res.json()) as { lectures: LectureRow[] };
-      setLectures(data.lectures);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to load lectures');
-    } finally {
-      setLoadingList(false);
-    }
-  }, [authHeaders, router, token]);
+  const refreshLectures = useCallback(
+    async (courseId?: number) => {
+      if (!token) return;
+      setLoadingList(true);
+      try {
+        const url = courseId
+          ? `${apiBase()}/lectures?courseId=${courseId}`
+          : `${apiBase()}/lectures`;
+        const res = await fetch(url, { headers: authHeaders });
+        if (res.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          router.replace('/login');
+          return;
+        }
+        if (!res.ok) throw new Error('Failed to load lectures');
+        const data = (await res.json()) as { lectures: LectureRow[] };
+        setLectures(data.lectures);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Failed to load lectures');
+      } finally {
+        setLoadingList(false);
+      }
+    },
+    [authHeaders, router, token]
+  );
 
-  const loadDetail = useCallback(async (id: number) => {
-    if (!token) return;
-    setLoadingDetail(true);
-    try {
-      const res = await fetch(`${apiBase()}/lectures/${id}`, { headers: authHeaders });
-      if (!res.ok) throw new Error('Failed to load lecture');
-      const data = (await res.json()) as { lecture: LectureDetail };
-      setDetail(data.lecture);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to load lecture');
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, [authHeaders, token]);
+  const loadDetail = useCallback(
+    async (id: number) => {
+      if (!token) return;
+      setLoadingDetail(true);
+      try {
+        const res = await fetch(`${apiBase()}/lectures/${id}`, { headers: authHeaders });
+        if (!res.ok) throw new Error('Failed to load lecture');
+        const data = (await res.json()) as { lecture: LectureDetail };
+        setDetail(data.lecture);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : 'Failed to load lecture');
+      } finally {
+        setLoadingDetail(false);
+      }
+    },
+    [authHeaders, token]
+  );
+
+  const loadQuizResults = useCallback(
+    async (lectureId: number) => {
+      if (!token) return;
+      setLoadingResults(true);
+      try {
+        const res = await fetch(`${apiBase()}/lectures/${lectureId}/quiz-results`, {
+          headers: authHeaders,
+        });
+        if (!res.ok) throw new Error('Failed to load quiz results');
+        setQuizResults(
+          (await res.json()) as {
+            quiz: { id: number; createdAt: string } | null;
+            results: {
+              id: number;
+              score: number;
+              createdAt: string;
+              student: { id: number; name: string; email: string };
+            }[];
+          }
+        );
+      } catch (e) {
+        setQuizResults(null);
+        toast.error(e instanceof Error ? e.message : 'Failed to load quiz results');
+      } finally {
+        setLoadingResults(false);
+      }
+    },
+    [authHeaders, token]
+  );
 
   useEffect(() => {
     if (!token) return;
@@ -196,16 +261,40 @@ export default function ProfessorDashboardPage() {
   }, [token, loadCapabilities, loadCourses]);
 
   useEffect(() => {
-    if (!selectedCourse) { setLectures([]); setCourseStudents([]); return; }
+    if (!selectedCourse) {
+      setLectures([]);
+      setCourseStudents([]);
+      return;
+    }
     void refreshLectures(selectedCourse.id);
     void loadStudents(selectedCourse.id);
   }, [selectedCourse, refreshLectures, loadStudents]);
 
   useEffect(() => {
-    if (!selectedId || !token) { setDetail(null); setGeneratedQuiz(null); return; }
+    if (!selectedId || !token) {
+      setDetail(null);
+      setGeneratedQuiz(null);
+      return;
+    }
     setGeneratedQuiz(null);
+    setDetailTab('whisper');
     void loadDetail(selectedId);
   }, [selectedId, token, loadDetail]);
+
+  useEffect(() => {
+    if (!selectedId || !token) {
+      setQuizResults(null);
+      return;
+    }
+    void loadQuizResults(selectedId);
+  }, [selectedId, token, loadQuizResults]);
+
+  useEffect(() => {
+    const hasTranscript = Boolean(detail?.transcript?.trim());
+    if (!hasTranscript && detailTab !== 'whisper') {
+      setDetailTab('whisper');
+    }
+  }, [detail?.transcript, detailTab]);
 
   const handleCreateCourse = async () => {
     if (!token) return;
@@ -282,6 +371,7 @@ export default function ProfessorDashboardPage() {
         setGeneratedQuiz(data.quiz as GeneratedQuiz);
       }
       await loadDetail(selectedId);
+      await loadQuizResults(selectedId);
       if (selectedCourse) await refreshLectures(selectedCourse.id);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : `${label} failed`);
@@ -357,7 +447,12 @@ export default function ProfessorDashboardPage() {
             {courses.map((c) => (
               <Grid key={c.id} size={{ xs: 12, sm: 6, md: 4 }}>
                 <Paper
-                  onClick={() => { setSelectedCourse(c); setSelectedId(null); setDetail(null); setTab('lectures'); }}
+                  onClick={() => {
+                    setSelectedCourse(c);
+                    setSelectedId(null);
+                    setDetail(null);
+                    setTab('lectures');
+                  }}
                   sx={{
                     p: 2.5,
                     border: 1,
@@ -367,12 +462,19 @@ export default function ProfessorDashboardPage() {
                     '&:hover': { borderColor: 'text.secondary' },
                   }}
                 >
-                  <Chip label={c.code} size='small' sx={{ bgcolor: 'action.selected', fontWeight: 600, fontSize: 12, mb: 1 }} />
+                  <Chip
+                    label={c.code}
+                    size='small'
+                    sx={{ bgcolor: 'action.selected', fontWeight: 600, fontSize: 12, mb: 1 }}
+                  />
                   <Typography variant='subtitle1' sx={{ color: 'text.primary' }}>
                     {c.name}
                   </Typography>
                   {c.description && (
-                    <Typography variant='body2' sx={{ color: 'text.secondary', fontSize: 13, mt: 0.5 }}>
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'text.secondary', fontSize: 13, mt: 0.5 }}
+                    >
                       {c.description}
                     </Typography>
                   )}
@@ -402,7 +504,9 @@ export default function ProfessorDashboardPage() {
           PaperProps={{ sx: { border: 1, borderColor: 'divider', minWidth: 400 } }}
         >
           <DialogTitle>Create New Course</DialogTitle>
-          <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '8px !important' }}>
+          <DialogContent
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '8px !important' }}
+          >
             <TextField
               size='small'
               label='Course Name'
@@ -454,15 +558,26 @@ export default function ProfessorDashboardPage() {
         <Button
           variant='text'
           size='small'
-          onClick={() => { setSelectedCourse(null); setSelectedId(null); setDetail(null); void loadCourses(); }}
+          onClick={() => {
+            setSelectedCourse(null);
+            setSelectedId(null);
+            setDetail(null);
+            void loadCourses();
+          }}
           sx={{ color: 'text.secondary', mb: 1, pl: 0 }}
         >
           <ChevronLeft size={16} style={{ marginRight: 4 }} />
           All Courses
         </Button>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'space-between' }}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', gap: 1.5, justifyContent: 'space-between' }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Chip label={selectedCourse.code} size='small' sx={{ bgcolor: 'action.selected', fontWeight: 600 }} />
+            <Chip
+              label={selectedCourse.code}
+              size='small'
+              sx={{ bgcolor: 'action.selected', fontWeight: 600 }}
+            />
             <Typography variant='h5' sx={{ color: 'text.primary' }}>
               {selectedCourse.name}
             </Typography>
@@ -520,12 +635,22 @@ export default function ProfessorDashboardPage() {
               <Chip
                 size='small'
                 label='DEMO MODE — hardcoded data'
-                sx={{ fontSize: 10, bgcolor: 'warning.main', color: 'warning.contrastText', fontWeight: 700 }}
+                sx={{
+                  fontSize: 10,
+                  bgcolor: 'warning.main',
+                  color: 'warning.contrastText',
+                  fontWeight: 700,
+                }}
               />
             )}
           </Box>
           <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            <Chip size='small' label={`Whisper: ${caps.whisperBackend}`} variant='outlined' sx={{ fontSize: 11 }} />
+            <Chip
+              size='small'
+              label={`Whisper: ${caps.whisperBackend}`}
+              variant='outlined'
+              sx={{ fontSize: 11 }}
+            />
             <Chip size='small' label={caps.claudeModel} variant='outlined' sx={{ fontSize: 11 }} />
             <Chip
               size='small'
@@ -548,8 +673,12 @@ export default function ProfessorDashboardPage() {
             />
           </Box>
           {caps.demoMode && (
-            <Typography variant='caption' sx={{ color: 'text.secondary', mt: 1, display: 'block', fontSize: 11 }}>
-              Claude API не подключён. Bullet points и квизы генерируются из готовых шаблонов.
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.secondary', mt: 1, display: 'block', fontSize: 11 }}
+            >
+              OpenAI API is not connected. Bullet points and quizzes are generated from preset
+              templates.
             </Typography>
           )}
         </Paper>
@@ -620,14 +749,23 @@ export default function ProfessorDashboardPage() {
                 />
                 <Button variant='outlined' size='small' component='label'>
                   Choose video
-                  <input type='file' hidden accept='video/*' onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+                  <input
+                    type='file'
+                    hidden
+                    accept='video/*'
+                    onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  />
                 </Button>
                 {file && (
                   <Typography variant='caption' sx={{ color: 'text.secondary' }}>
                     {file.name}
                   </Typography>
                 )}
-                <Button size='small' disabled={busy === 'upload' || !file} onClick={() => void handleUpload()}>
+                <Button
+                  size='small'
+                  disabled={busy === 'upload' || !file}
+                  onClick={() => void handleUpload()}
+                >
                   {busy === 'upload' ? <CircularProgress size={16} /> : 'Upload'}
                 </Button>
               </Box>
@@ -638,7 +776,15 @@ export default function ProfessorDashboardPage() {
               {loadingList ? (
                 <CircularProgress size={20} sx={{ color: 'text.secondary' }} />
               ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 320, overflow: 'auto' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    maxHeight: 320,
+                    overflow: 'auto',
+                  }}
+                >
                   {lectures.length === 0 && (
                     <Typography variant='caption' sx={{ color: 'text.secondary' }}>
                       No lectures yet.
@@ -661,7 +807,8 @@ export default function ProfessorDashboardPage() {
                         {l.title}
                       </Typography>
                       <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-                        {l.transcript ? 'Transcribed' : 'No transcript'} · {l.bulletPoints ? 'Has bullets' : 'No bullets'}
+                        {l.transcript ? 'Transcribed' : 'No transcript'} ·{' '}
+                        {l.bulletPoints ? 'Has bullets' : 'No bullets'}
                       </Typography>
                     </Paper>
                   ))}
@@ -673,10 +820,21 @@ export default function ProfessorDashboardPage() {
           <Grid size={{ xs: 12, md: 7 }}>
             <Paper sx={{ p: 2.5, border: 1, borderColor: 'divider', minHeight: 360 }}>
               {!selectedId && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 300, gap: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 300,
+                    gap: 1,
+                  }}
+                >
                   <Sparkles size={28} style={{ opacity: 0.3 }} />
                   <Typography variant='body2' sx={{ color: 'text.secondary', textAlign: 'center' }}>
-                    Выберите лекцию слева, чтобы сгенерировать<br />bullet points или квиз.
+                    Select a lecture on the left to generate
+                    <br />
+                    bullet points or a quiz.
                   </Typography>
                 </Box>
               )}
@@ -691,177 +849,445 @@ export default function ProfessorDashboardPage() {
                     <Typography variant='h6' sx={{ color: 'text.primary' }}>
                       {detail.title}
                     </Typography>
-                    <Typography variant='caption' sx={{ color: 'text.secondary', wordBreak: 'break-all' }}>
+                    <Typography
+                      variant='caption'
+                      sx={{ color: 'text.secondary', wordBreak: 'break-all' }}
+                    >
                       {detail.videoUrl}
                     </Typography>
                   </Box>
 
-                  {/* Action buttons */}
+                  {/* Detail tabs */}
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    <Button
-                      size='small'
-                      variant='outlined'
-                      disabled={busy !== null || !caps?.canTranscribe}
-                      onClick={() => void runAction('/transcribe', 'Transcribe')}
-                    >
-                      {busy === 'Transcribe' ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : <Mic size={14} style={{ marginRight: 4 }} />}
-                      Whisper
-                    </Button>
-                    <Button
-                      size='small'
-                      variant='outlined'
-                      disabled={busy !== null}
-                      onClick={() => void runAction('/generate-bullets', 'Bullets')}
-                    >
-                      {busy === 'Bullets' ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : <ListChecks size={14} style={{ marginRight: 4 }} />}
-                      Bullet points
-                    </Button>
-                    <Button
-                      size='small'
-                      disabled={busy !== null}
-                      onClick={() => { setGeneratedQuiz(null); void runAction('/generate-quiz', 'Quiz'); }}
-                    >
-                      {busy === 'Quiz' ? <CircularProgress size={14} sx={{ mr: 0.5 }} /> : <Sparkles size={14} style={{ marginRight: 4 }} />}
-                      Сгенерировать квиз
-                    </Button>
+                    {(
+                      [
+                        ['whisper', 'Whisper'],
+                        ['bullets', 'Bullet Points'],
+                        ['quiz', 'Generate Quiz'],
+                        ['results', 'Quiz Results'],
+                      ] as const
+                    ).map(([key, label]) => (
+                      (() => {
+                        const hasTranscript = Boolean(detail.transcript?.trim());
+                        const isDisabled = !hasTranscript && key !== 'whisper';
+                        return (
+                      <Chip
+                        key={key}
+                        label={label}
+                        onClick={() => {
+                          if (isDisabled) return;
+                          setDetailTab(key);
+                        }}
+                        disabled={isDisabled}
+                        sx={{
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                          fontWeight: detailTab === key ? 600 : 400,
+                          bgcolor: detailTab === key ? 'text.primary' : 'transparent',
+                          color: isDisabled
+                            ? 'text.disabled'
+                            : detailTab === key
+                              ? 'background.default'
+                              : 'text.secondary',
+                          border: 1,
+                          borderColor: detailTab === key ? 'text.primary' : 'divider',
+                          '&:hover': {
+                            bgcolor: isDisabled
+                              ? 'transparent'
+                              : detailTab === key
+                                ? 'text.primary'
+                                : 'action.hover',
+                          },
+                        }}
+                      />
+                        );
+                      })()
+                    ))}
                   </Box>
 
-                  {/* Transcript */}
-                  <Box>
-                    <Typography variant='caption' sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
-                      Транскрипт
-                    </Typography>
-                    <Paper
-                      sx={{
-                        mt: 0.5,
-                        p: 1.5,
-                        maxHeight: 160,
-                        overflow: 'auto',
-                        bgcolor: 'background.default',
-                        border: 1,
-                        borderColor: 'divider',
-                        fontSize: 13,
-                        color: 'text.secondary',
-                        whiteSpace: 'pre-wrap',
-                      }}
-                    >
-                      {detail.transcript || (
-                        <span style={{ fontStyle: 'italic', opacity: 0.6 }}>
-                          Транскрипт ещё не создан. Нажмите «Whisper» для генерации.
-                        </span>
-                      )}
-                    </Paper>
-                  </Box>
+                  {/* Whisper tab */}
+                  {detailTab === 'whisper' && (
+                    <Box>
+                      <Stack direction='row' alignItems='center' gap={1} mb={2}>
+                        <Button
+                          size='small'
+                          variant='outlined'
+                          disabled={busy !== null || !caps?.canTranscribe}
+                          onClick={() => void runAction('/transcribe', 'Transcribe')}
+                        >
+                          {busy === 'Transcribe' ? (
+                            <CircularProgress size={14} sx={{ mr: 0.5 }} />
+                          ) : (
+                            <Mic size={14} style={{ marginRight: 4 }} />
+                          )}
+                          Whisper
+                        </Button>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 1,
+                          }}
+                        >
+                          Transcript
+                        </Typography>
+                      </Stack>
 
-                  {/* Bullet points */}
-                  <Box>
-                    <Typography variant='caption' sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
-                      Ключевые тезисы
-                    </Typography>
-                    {detail.bulletPoints?.length ? (
-                      <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                        {detail.bulletPoints.map((b, i) => (
-                          <Box
-                            key={`${i}-${b.slice(0, 24)}`}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              gap: 1,
-                              p: 1,
-                              borderRadius: 1,
-                              bgcolor: 'action.hover',
-                            }}
-                          >
+                      <Paper
+                        sx={{
+                          mt: 0.5,
+                          p: 1.5,
+                          maxHeight: 220,
+                          overflow: 'auto',
+                          bgcolor: 'background.default',
+                          border: 1,
+                          borderColor: 'divider',
+                          fontSize: 13,
+                          color: 'text.secondary',
+                          whiteSpace: 'pre-wrap',
+                        }}
+                      >
+                        {detail.transcript || (
+                          <span style={{ fontStyle: 'italic', opacity: 0.6 }}>
+                            Transcript has not been created yet. Click "Whisper" to generate it.
+                          </span>
+                        )}
+                      </Paper>
+                    </Box>
+                  )}
+
+                  {/* Bullet points tab */}
+                  {detailTab === 'bullets' && (
+                    <Box>
+                      <Stack direction='row' alignItems='center' gap={1} mb={2}>
+                        <Button
+                          size='small'
+                          variant='outlined'
+                          disabled={busy !== null}
+                          onClick={() => void runAction('/generate-bullets', 'Bullets')}
+                        >
+                          {busy === 'Bullets' ? (
+                            <CircularProgress size={14} sx={{ mr: 0.5 }} />
+                          ) : (
+                            <ListChecks size={14} style={{ marginRight: 4 }} />
+                          )}
+                          Generate bullet points
+                        </Button>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 1,
+                          }}
+                        >
+                          Key points
+                        </Typography>
+                      </Stack>
+                      {detail.bulletPoints?.length ? (
+                        <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          {detail.bulletPoints.map((b, i) => (
                             <Box
+                              key={`${i}-${b.slice(0, 24)}`}
                               sx={{
-                                minWidth: 22,
-                                height: 22,
-                                borderRadius: '50%',
-                                bgcolor: 'text.primary',
-                                color: 'background.default',
                                 display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: 11,
-                                fontWeight: 700,
-                                flexShrink: 0,
-                                mt: 0.1,
+                                alignItems: 'flex-start',
+                                gap: 1,
+                                p: 1,
+                                borderRadius: 1,
+                                bgcolor: 'action.hover',
                               }}
                             >
-                              {i + 1}
+                              <Box
+                                sx={{
+                                  minWidth: 22,
+                                  height: 22,
+                                  borderRadius: '50%',
+                                  bgcolor: 'text.primary',
+                                  color: 'background.default',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  flexShrink: 0,
+                                  mt: 0.1,
+                                }}
+                              >
+                                {i + 1}
+                              </Box>
+                              <Typography
+                                variant='body2'
+                                sx={{ color: 'text.primary', fontSize: 13 }}
+                              >
+                                {b}
+                              </Typography>
                             </Box>
-                            <Typography variant='body2' sx={{ color: 'text.primary', fontSize: 13 }}>
-                              {b}
-                            </Typography>
-                          </Box>
-                        ))}
-                      </Box>
-                    ) : (
-                      <Typography variant='body2' sx={{ color: 'text.secondary', mt: 0.5, fontStyle: 'italic', fontSize: 13 }}>
-                        Нажмите «Bullet points» для генерации ключевых тезисов.
-                      </Typography>
-                    )}
-                  </Box>
+                          ))}
+                        </Box>
+                      ) : (
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                            mt: 0.5,
+                            fontStyle: 'italic',
+                            fontSize: 13,
+                          }}
+                        >
+                          Click "Generate bullet points" to generate key points.
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
 
-                  {/* Generated quiz preview */}
-                  {generatedQuiz && generatedQuiz.questions.length > 0 && (
+                  {/* Quiz tab */}
+                  {detailTab === 'quiz' && (
                     <Box>
-                      <Typography variant='caption' sx={{ color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
-                        Сгенерированный квиз ({generatedQuiz.questions.length} вопросов)
+                      <Stack direction='row' alignItems='center' gap={1} mb={2}>
+                        <Button
+                          size='small'
+                          disabled={busy !== null}
+                          onClick={() => {
+                            setGeneratedQuiz(null);
+                            void runAction('/generate-quiz', 'Quiz');
+                          }}
+                          sx={{ mb: 1 }}
+                        >
+                          {busy === 'Quiz' ? (
+                            <CircularProgress size={14} sx={{ mr: 0.5 }} />
+                          ) : (
+                            <Sparkles size={14} style={{ marginRight: 4 }} />
+                          )}
+                          Generate quiz
+                        </Button>
+                      </Stack>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.secondary',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: 1,
+                        }}
+                      >
+                        {generatedQuiz
+                          ? `Generated quiz (${generatedQuiz.questions.length} questions)`
+                          : 'Generated quiz'}
                       </Typography>
-                      <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        {generatedQuiz.questions.map((q, qi) => {
-                          let opts: string[] = [];
-                          try { opts = JSON.parse(q.options); } catch { opts = []; }
-                          return (
+                      {!generatedQuiz ? (
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                            mt: 0.5,
+                            fontStyle: 'italic',
+                            fontSize: 13,
+                          }}
+                        >
+                          Click "Generate quiz" to create questions for this lecture.
+                        </Typography>
+                      ) : (
+                        <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {generatedQuiz.questions.map((q, qi) => {
+                            let opts: string[] = [];
+                            try {
+                              opts = JSON.parse(q.options);
+                            } catch {
+                              opts = [];
+                            }
+                            return (
+                              <Paper
+                                key={q.id}
+                                sx={{
+                                  p: 1.5,
+                                  border: 1,
+                                  borderColor: 'divider',
+                                  bgcolor: 'background.default',
+                                }}
+                              >
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: 'text.primary',
+                                    fontWeight: 500,
+                                    mb: 1,
+                                    fontSize: 13,
+                                  }}
+                                >
+                                  {qi + 1}. {q.question}
+                                </Typography>
+                                <Box
+                                  sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pl: 1 }}
+                                >
+                                  {opts.map((opt) => (
+                                    <Box
+                                      key={opt}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 0.75,
+                                      }}
+                                    >
+                                      <Box
+                                        sx={{
+                                          width: 6,
+                                          height: 6,
+                                          borderRadius: '50%',
+                                          bgcolor:
+                                            opt === q.correctAnswer
+                                              ? 'success.main'
+                                              : 'text.disabled',
+                                          flexShrink: 0,
+                                        }}
+                                      />
+                                      <Typography
+                                        variant='caption'
+                                        sx={{
+                                          color:
+                                            opt === q.correctAnswer
+                                              ? 'success.main'
+                                              : 'text.secondary',
+                                          fontWeight: opt === q.correctAnswer ? 600 : 400,
+                                          fontSize: 12,
+                                        }}
+                                      >
+                                        {opt}
+                                      </Typography>
+                                    </Box>
+                                  ))}
+                                </Box>
+                              </Paper>
+                            );
+                          })}
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+
+                  {/* Quiz results leaderboard */}
+                  {detailTab === 'results' && (
+                    <Box>
+                      <Stack direction='row' alignItems='center' gap={1} mb={2}>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary',
+                            fontWeight: 600,
+                            textTransform: 'uppercase',
+                            letterSpacing: 1,
+                          }}
+                        >
+                          Quiz results
+                        </Typography>
+                      </Stack>
+                      {loadingResults ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+                          <CircularProgress size={18} sx={{ color: 'text.secondary' }} />
+                        </Box>
+                      ) : !quizResults?.quiz ? (
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                            mt: 0.5,
+                            fontStyle: 'italic',
+                            fontSize: 13,
+                          }}
+                        >
+                          No quiz results yet.
+                        </Typography>
+                      ) : quizResults.results.length === 0 ? (
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'text.secondary',
+                            mt: 0.5,
+                            fontStyle: 'italic',
+                            fontSize: 13,
+                          }}
+                        >
+                          No students have taken this quiz yet.
+                        </Typography>
+                      ) : (
+                        <Box sx={{ mt: 0.75, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {quizResults.results.map((r, idx) => (
                             <Paper
-                              key={q.id}
+                              key={r.id}
                               sx={{
                                 p: 1.5,
                                 border: 1,
                                 borderColor: 'divider',
                                 bgcolor: 'background.default',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                gap: 2,
                               }}
                             >
-                              <Typography variant='body2' sx={{ color: 'text.primary', fontWeight: 500, mb: 1, fontSize: 13 }}>
-                                {qi + 1}. {q.question}
-                              </Typography>
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pl: 1 }}>
-                                {opts.map((opt) => (
-                                  <Box
-                                    key={opt}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1.5,
+                                  minWidth: 0,
+                                }}
+                              >
+                                <Chip
+                                  size='small'
+                                  label={`#${idx + 1}`}
+                                  sx={{
+                                    fontSize: 11,
+                                    bgcolor: 'action.selected',
+                                    color: 'text.primary',
+                                    fontWeight: 700,
+                                  }}
+                                />
+                                <Box sx={{ minWidth: 0 }}>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{ color: 'text.primary', fontWeight: 500, lineHeight: 1.2 }}
+                                  >
+                                    {r.student.name}
+                                  </Typography>
+                                  <Typography
+                                    variant='caption'
                                     sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 0.75,
+                                      color: 'text.secondary',
+                                      display: 'block',
+                                      lineHeight: 1.2,
                                     }}
                                   >
-                                    <Box
-                                      sx={{
-                                        width: 6,
-                                        height: 6,
-                                        borderRadius: '50%',
-                                        bgcolor: opt === q.correctAnswer ? 'success.main' : 'text.disabled',
-                                        flexShrink: 0,
-                                      }}
-                                    />
-                                    <Typography
-                                      variant='caption'
-                                      sx={{
-                                        color: opt === q.correctAnswer ? 'success.main' : 'text.secondary',
-                                        fontWeight: opt === q.correctAnswer ? 600 : 400,
-                                        fontSize: 12,
-                                      }}
-                                    >
-                                      {opt}
-                                    </Typography>
-                                  </Box>
-                                ))}
+                                    {r.student.email}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip
+                                  size='small'
+                                  label={`${r.score}%`}
+                                  sx={{
+                                    fontSize: 11,
+                                    bgcolor:
+                                      r.score >= 80
+                                        ? 'success.main'
+                                        : r.score >= 50
+                                          ? 'warning.main'
+                                          : 'error.main',
+                                    color: 'common.white',
+                                    fontWeight: 700,
+                                  }}
+                                />
+                                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                                  {new Date(r.createdAt).toLocaleDateString()}
+                                </Typography>
                               </Box>
                             </Paper>
-                          );
-                        })}
-                      </Box>
+                          ))}
+                        </Box>
+                      )}
                     </Box>
                   )}
                 </Box>

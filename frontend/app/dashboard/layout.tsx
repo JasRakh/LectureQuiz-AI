@@ -23,11 +23,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         return;
       }
 
-      const apiBase = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiBase) {
-        router.replace('/login');
-        return;
-      }
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
       try {
         const res = await fetch(`${apiBase}/auth/me`, {

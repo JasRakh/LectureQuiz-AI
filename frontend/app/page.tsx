@@ -79,8 +79,8 @@ const pipelineSteps = [
     icon: Brain,
     num: '03',
     title: 'Concept extraction',
-    body: 'Claude AI reads the transcript, identifies core concepts, and generates structured bullet-point summaries.',
-    detail: 'Claude 3.5 Sonnet / GPT-4',
+    body: 'OpenAI reads the transcript, identifies core concepts, and generates structured bullet-point summaries.',
+    detail: 'OpenAI GPT',
   },
   {
     icon: FileQuestion,
@@ -191,7 +191,7 @@ export default function LandingPage() {
                   {[
                     { label: 'Frontend', tech: 'Next.js + React + MUI', color: '#3b82f6' },
                     { label: 'Backend', tech: 'Node.js + Express + Prisma', color: '#10b981' },
-                    { label: 'AI Layer', tech: 'Whisper ASR + Claude LLM', color: '#8b5cf6' },
+                    { label: 'AI Layer', tech: 'Whisper ASR + OpenAI LLM', color: '#8b5cf6' },
                     { label: 'Database', tech: 'PostgreSQL + Prisma ORM', color: '#f59e0b' },
                   ].map((layer, i) => (
                     <motion.div

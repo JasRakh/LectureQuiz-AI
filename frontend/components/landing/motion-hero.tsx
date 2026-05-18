@@ -21,13 +21,13 @@ const fadeUp = (delay: number) => ({
 const pipelineNodes = [
   { icon: Video, label: 'Lecture Video', sub: 'MP4 / Zoom / LMS' },
   { icon: AudioLines, label: 'Whisper ASR', sub: 'Speech → Text' },
-  { icon: Brain, label: 'AI Analysis', sub: 'Claude / GPT' },
+  { icon: Brain, label: 'AI Analysis', sub: 'OpenAI GPT' },
   { icon: FileQuestion, label: 'Adaptive Quiz', sub: 'Personalized MCQs' },
 ];
 
 const techStack = [
   'OpenAI Whisper',
-  'Claude AI',
+  'OpenAI GPT',
   'Next.js',
   'Prisma',
   'TypeScript',
